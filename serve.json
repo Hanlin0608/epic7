@@ -1,0 +1,20 @@
+{
+  "public": ".",
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/game", "destination": "/game.html" },
+    { "source": "/game.html", "destination": "/game.html" }
+  ],
+  "headers": [
+    {
+      "source": "**/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
+
