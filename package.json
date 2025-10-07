@@ -3,11 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "description": "MediaPipe pose demo static site",
+  "type": "module",
   "scripts": {
-    "start": "serve -s -l $PORT ."
+    "start": "npx serve -s . -l ${PORT:-8080}"
   },
   "dependencies": {
-    "serve": "^14.2.1"
+    "serve": "^14.2.3"
   },
   "engines": {
     "node": ">=18"
