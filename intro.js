@@ -17,7 +17,7 @@ if (agreeCameraBtn) {
   agreeCameraBtn.addEventListener("click", () => {
     closeCameraModal();
     // Navigate to game page; camera will be requested there
-    window.location.href = "./index.html";
+    window.location.href = "./game.html";
   });
 }
 
