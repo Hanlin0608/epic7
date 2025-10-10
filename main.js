@@ -9,6 +9,8 @@ const canvasEl = document.getElementById("canvas");
 const ctx = canvasEl.getContext("2d");
 const guideCanvas = document.getElementById("heroGuide") || document.getElementById("guide");
 const guideCtx = guideCanvas ? guideCanvas.getContext("2d") : null;
+const demoCanvas = document.getElementById("demoCanvas");
+const demoCtx = demoCanvas ? demoCanvas.getContext("2d") : null;
 
 const startBtn = document.getElementById("startBtn");
 const stopBtn = document.getElementById("stopBtn");
@@ -41,7 +43,7 @@ const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const resetSettingsBtn = document.getElementById("resetSettingsBtn");
 const saveToast = document.getElementById("saveToast");
 // Movement cards + mode buttons
-const movementCardsEl = document.getElementById("movementCards");
+const movementCardsEl = document.getElementById("cardsScroller");
 const practiceModeBtn = document.getElementById("practiceModeBtn");
 const scoreModeBtn = document.getElementById("scoreModeBtn");
 // Hero elements
@@ -403,7 +405,7 @@ function loop(t = performance.now()) {
     if (scoreMode && ev && Number.isFinite(ev.score)) { totalScore += ev.score; totalSamples += 1; }
 
     if (training) {
-      if (ev && ev.ok && !requireRelease) {
+      if (ev && (ev.ok || ev.score >= 90) && !requireRelease) {
         holdSec += lastDtSec || 0;
         if (holdSec >= holdTargetSec) {
           completedCount += 1; requireRelease = true; holdSec = 0;
@@ -457,7 +459,7 @@ function loop(t = performance.now()) {
           }
         }
       } else {
-        if (!ev || !ev.ok) { if (requireRelease) requireRelease = false; holdSec = 0; }
+        if (!ev || (!ev.ok && ev.score < 90)) { if (requireRelease) requireRelease = false; holdSec = 0; }
       }
       holdEl.textContent = `Hold: ${holdSec.toFixed(1)}s / ${holdTargetSec}s`;
       if (holdProgressFill) { const pct = Math.max(0, Math.min(100, (holdSec / Math.max(1e-6, holdTargetSec)) * 100)); holdProgressFill.style.width = `${pct}%`; }
@@ -700,13 +702,27 @@ function renderMovementCards() {
     const card = document.createElement("div"); card.className = "cardMove"; card.dataset.mode = mode;
     const title = document.createElement("h4"); title.textContent = titleForMode(mode);
     const anim = document.createElement("div"); anim.className = "anim";
-    const canvas = document.createElement("canvas"); canvas.width = 300; canvas.height = 180; anim.appendChild(canvas);
+    const canvas = document.createElement("canvas");
+    // High DPI rendering for crisp display
+    const dpr = window.devicePixelRatio || 2;
+    canvas.width = 300 * dpr;
+    canvas.height = 180 * dpr;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    anim.appendChild(canvas);
     const p = document.createElement("p"); p.textContent = cardDescriptions[mode] || "";
     card.appendChild(title); card.appendChild(anim); card.appendChild(p);
     card.addEventListener("click", () => onCardClick(mode, card));
     movementCardsEl.appendChild(card);
     startCardAnimation(canvas, mode);
   });
+  
+  // Initialize demo canvas with first exercise
+  if (demoCanvas && exerciseOrder.length > 0) {
+    updateDemoCanvas(exerciseOrder[0]);
+  }
 }
 
 function titleForMode(mode) {
@@ -725,19 +741,51 @@ function titleForMode(mode) {
 
 function startCardAnimation(canvas, mode) {
   const g = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 2;
   function drawFrame(ts) {
-    const W = canvas.width, H = canvas.height; const phase = ((ts/1000) % 2)/2;
-    g.clearRect(0,0,W,H);
+    const W = canvas.width / dpr, H = canvas.height / dpr; 
+    const phase = ((ts/1000) % 2)/2;
+    g.clearRect(0, 0, canvas.width, canvas.height);
     renderStickFigure(g, W, H, phase, mode);
     requestAnimationFrame(drawFrame);
   }
   requestAnimationFrame(drawFrame);
 }
 
+// Update demo canvas for selected movement
+let demoAnimationId = null;
+let demoCanvasDPR = 1;
+
+// Initialize demo canvas with high DPI
+function initDemoCanvas() {
+  if (!demoCanvas) return;
+  const rect = demoCanvas.getBoundingClientRect();
+  demoCanvasDPR = window.devicePixelRatio || 2;
+  demoCanvas.width = rect.width * demoCanvasDPR;
+  demoCanvas.height = rect.height * demoCanvasDPR;
+  if (demoCtx) {
+    demoCtx.scale(demoCanvasDPR, demoCanvasDPR);
+  }
+}
+
+function updateDemoCanvas(mode) {
+  if (!demoCanvas || !demoCtx) return;
+  if (demoAnimationId) cancelAnimationFrame(demoAnimationId);
+  
+  function drawFrame(ts) {
+    const W = demoCanvas.width / demoCanvasDPR, H = demoCanvas.height / demoCanvasDPR; 
+    const phase = ((ts/1000) % 2)/2;
+    demoCtx.clearRect(0, 0, demoCanvas.width, demoCanvas.height);
+    renderStickFigure(demoCtx, W, H, phase, mode);
+    demoAnimationId = requestAnimationFrame(drawFrame);
+  }
+  demoAnimationId = requestAnimationFrame(drawFrame);
+}
+
 // 统一的火柴人渲染器（供 card 与检测区共用）
 function renderStickFigure(g, W, H, phase, mode, scale = 1, yOffset = 0) {
-  g.save(); g.translate(W/2, H*0.75 + yOffset); g.strokeStyle = "#94a3b8"; g.lineWidth = 4; g.lineCap = "round";
-  const torsoLen = H*0.25*scale, legLen = H*0.22*scale, armLen = H*0.20*scale, headR = H*0.06*scale;
+  g.save(); g.translate(W/2, H*0.62 + yOffset); g.strokeStyle = "#94a3b8"; g.lineWidth = 5; g.lineCap = "round";
+  const torsoLen = H*0.22*scale, legLen = H*0.19*scale, armLen = H*0.18*scale, headR = H*0.055*scale;
   const hip = {x:0, y:0}; const shoulder = {x:0, y:-torsoLen}; const head = {x:0, y:-torsoLen - headR*1.8};
   let lArm = {x:-armLen*0.9, y:-torsoLen - armLen*0.2}; let rArm = {x: armLen*0.9, y:-torsoLen - armLen*0.2};
   let lKnee = {x:-legLen*0.2, y: legLen*0.5}; let rKnee = {x: legLen*0.2, y: legLen*0.5};
@@ -784,6 +832,10 @@ async function onCardClick(mode, cardEl) {
   if (cardEl) cardEl.classList.add('active');
   currentMode = mode; modeSelect.value = currentMode; holdTargetSec = getHoldTargetForMode(); completedTarget = 1; resetCounters();
   if (moveLabelEl) moveLabelEl.textContent = `Move: ${titleForMode(currentMode)}`; if (heroTipEl) heroTipEl.textContent = `Tip: ${tipsByMode[currentMode]}`;
+  
+  // Update demo canvas
+  updateDemoCanvas(mode);
+  
   if (practiceMode) {
     try { if (!stream) await start(); } catch {}
     training = true; trainBtn.textContent = "Pause"; 
@@ -845,6 +897,7 @@ if (modalSaveBtn) modalSaveBtn.addEventListener('click', () => {
 // Load voice pref
 try { const saved = localStorage.getItem('pose_demo_voice'); if (saved !== null) voiceEnabled = JSON.parse(saved); } catch {}
 updateVoiceUI();
+initDemoCanvas();
 renderMovementCards();
 
 // ---- UI helpers for hero buttons ----

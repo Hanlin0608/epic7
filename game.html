@@ -20,8 +20,9 @@
       --success: #16a34a;
     }
 
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 0; padding: 16px; background: var(--bg); color: var(--text); }
-    .wrap { max-width: 1280px; margin: 0 auto; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 0; padding: 40px; padding-top: 140px; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; box-sizing: border-box; }
+    .wrap { display: flex; height: calc(100vh - 180px); gap: 24px; box-sizing: border-box; }
+    .navbarSpace { position: fixed; top: 0; left: 0; right: 0; height: 100px; background: transparent; z-index: 100; pointer-events: none; }
 
     .toolbar { display:flex; gap:12px; align-items:center; margin-bottom:12px; flex-wrap: wrap; }
     button { background: linear-gradient(to right, var(--primary), var(--accent)); color:#fff; border:none; padding:12px 24px; border-radius:26px; cursor:pointer; font-weight:700; font-size:16px; transition: all 0.3s ease; box-shadow: 0 6px 12px rgba(249, 115, 22, 0.3); }
@@ -59,7 +60,9 @@
     .settings .spacer { flex:1; }
     .toast { display:none; margin-left: 8px; color:var(--success); font-weight:700; }
     /* New hero layout */
-    .hero { background: var(--surface); backdrop-filter: blur(10px); color: var(--text); border-radius:28px; padding:24px; border:1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,.12), 0 10px 20px rgba(0,0,0,.05); }
+    .leftPanel { flex: 0 0 30%; display: flex; flex-direction: column; gap: 20px; min-width: 300px; max-width: 400px; }
+    .rightPanel { flex: 1; display: flex; flex-direction: column; }
+    .hero { background: var(--surface); backdrop-filter: blur(10px); color: var(--text); border-radius:28px; padding:24px; border:1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,.12), 0 10px 20px rgba(0,0,0,.05); display: flex; flex-direction: column; height: 100%; }
     .heroTop { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
     .heroTopRight { display:flex; align-items:center; gap:12px; }
     .iconBtn { position:relative; display:inline-flex; align-items:center; justify-content:center; width:80px; height:80px; border-radius:50%; background: linear-gradient(to right, var(--primary), var(--accent)); color:#fff; border:none; box-shadow: 0 6px 12px rgba(249,115,22,.35); cursor:pointer; transition: all 0.2s ease; }
@@ -70,19 +73,23 @@
     .scoreBadge { background: linear-gradient(to right, #0ea5e9, #06b6d4); color:#fff; padding:12px 20px; border-radius:999px; font-weight:800; font-size: clamp(14px, 1.8vw, 18px); box-shadow: 0 4px 8px rgba(14,165,233,.3); }
     .levelBadge { background: linear-gradient(to right, #fbbf24, #f59e0b); color:#111827; padding:12px 20px; border-radius:26px; font-weight:700; font-size: clamp(14px, 1.8vw, 16px); box-shadow: 0 4px 8px rgba(251,191,36,.3); cursor:pointer; transition: all 0.2s ease; }
     .levelBadge:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(251,191,36,.4); }
-    .heroBody { display:flex; justify-content:center; align-items:center; padding:14px 0; }
-    .heroCircle { width:100%; aspect-ratio:16/9; border-radius:20px; background: linear-gradient(145deg, #fafafa, #f5f5f5); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; border:1px solid var(--border); box-shadow: inset 0 2px 4px rgba(0,0,0,.05); }
+    .heroBody { flex: 1; display:flex; justify-content:center; align-items:center; padding:14px 0; min-height: 0; }
+    .heroCircle { width:100%; height:100%; border-radius:20px; background: linear-gradient(145deg, #fafafa, #f5f5f5); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; border:1px solid var(--border); box-shadow: inset 0 2px 4px rgba(0,0,0,.05); }
     .heroCircle canvas#heroGuide { position:absolute; top:50%; left:25%; width:50%; height:70%; transform: translate(-50%, -50%); pointer-events:none; }
     .heroDots { display:flex; gap:10px; justify-content:center; margin-top:10px; }
     .heroDot { width:10px; height:10px; border-radius:999px; background: var(--primary); opacity:.8; }
-    .heroActions { display:flex; gap:16px; margin-top:20px; }
-    .btnPrimary { flex:1; background: linear-gradient(to right, var(--primary), var(--accent)); color:#fff; border:none; padding:16px; border-radius:26px; font-weight:800; font-size:18px; box-shadow: 0 6px 12px rgba(249,115,22,.3); transition: all 0.3s ease; cursor:pointer; }
+    .heroActions { display:flex; gap:12px; margin-top:20px; flex-shrink: 0; }
+    .demoCard { background: var(--surface); backdrop-filter: blur(10px); border-radius:20px; padding:20px; border:1px solid var(--border); box-shadow: 0 8px 20px rgba(0,0,0,.12); flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .demoCard h3 { margin:0 0 16px 0; font-size:18px; color: var(--text); font-weight:800; flex-shrink: 0; }
+    .demoCard .anim { position:relative; flex: 1; border-radius:16px; background: linear-gradient(145deg, #fafafa, #f5f5f5); border:1px solid var(--border); overflow:hidden; min-height: 0; }
+    .demoCard canvas { position:absolute; inset:0; width:100%; height:100%; }
+    .btnPrimary { flex:1; background: linear-gradient(to right, var(--primary), var(--accent)); color:#fff; border:none; padding:14px 20px; border-radius:26px; font-weight:800; font-size:16px; box-shadow: 0 6px 12px rgba(249,115,22,.3); transition: all 0.3s ease; cursor:pointer; }
     .btnPrimary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(249,115,22,.4); }
     .btnPrimary:active { transform: translateY(0); box-shadow: 0 3px 6px rgba(249,115,22,.3); }
-    .btnGhost { flex:1; background: linear-gradient(to right, #e5e7eb, #f3f4f6); color:#111; border:none; padding:16px; border-radius:26px; font-weight:800; font-size:18px; box-shadow: 0 4px 8px rgba(0,0,0,.1); transition: all 0.3s ease; cursor:pointer; }
+    .btnGhost { flex:1; background: linear-gradient(to right, #e5e7eb, #f3f4f6); color:#111; border:none; padding:14px 20px; border-radius:26px; font-weight:800; font-size:16px; box-shadow: 0 4px 8px rgba(0,0,0,.1); transition: all 0.3s ease; cursor:pointer; }
     .btnGhost:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,.15); }
     .btnGhost:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,.1); }
-    .heroTip { text-align:center; color: var(--muted); margin:16px 0 6px 0; font-size: clamp(15px, 2.0vw, 18px); font-weight: 700; }
+    .heroTip { text-align:center; color: var(--text); margin:12px 0 0 0; font-size:20px; font-weight: 800; flex-shrink: 0; letter-spacing: 0.3px; }
     /* Settings modal */
     .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 1000; }
     .modal .backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.4); backdrop-filter: blur(4px); }
@@ -96,20 +103,23 @@
     .btnMuted { background: linear-gradient(to right, #e5e7eb, #f3f4f6); color:#111; border:none; padding:12px 24px; border-radius:26px; font-weight:700; box-shadow: 0 4px 8px rgba(0,0,0,.1); transition: all 0.2s ease; cursor:pointer; }
     .btnMuted:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,.15); }
     /* Movement cards */
-    .cardsWrap { margin-top: 24px; }
-    .cardsHeader { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; color: var(--text); }
+    .cardsWrap { flex: 1; display: flex; flex-direction: column; background: var(--surface); backdrop-filter: blur(10px); border-radius:20px; padding:20px; border:1px solid var(--border); box-shadow: 0 8px 20px rgba(0,0,0,.12); overflow: hidden; min-height: 0; }
+    .cardsHeader { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; color: var(--text); flex-shrink: 0; }
     .cardsHeader strong { font-size:18px; font-weight:800; }
-    .cardsScroller { display:flex; gap:14px; overflow-x:auto; padding-bottom: 8px; }
-    .cardMove { flex:0 0 220px; background: var(--surface); backdrop-filter: blur(10px); border:1px solid var(--border); border-radius:20px; box-shadow: 0 6px 16px rgba(0,0,0,.12); color: var(--text); transition: all 0.3s ease; cursor:pointer; }
-    .cardMove:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(249,115,22,.2); }
-    .cardMove h4 { margin:12px 14px; font-size:15px; color: var(--text); font-weight:700; }
-    .cardMove .anim { position:relative; height:140px; margin: 0 10px; border-radius:16px; background: linear-gradient(145deg, #fafafa, #f5f5f5); border:1px solid var(--border); overflow:hidden; }
+    .cardsScroller { display:flex; flex-direction: row; gap:12px; overflow-x:auto; overflow-y: hidden; padding-bottom: 8px; flex: 1; min-height: 0; }
+    .cardsScroller::-webkit-scrollbar { height: 8px; }
+    .cardsScroller::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 4px; }
+    .cardsScroller::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+    .cardMove { background: rgba(249, 115, 22, 0.05); border:1px solid var(--border); border-radius:16px; box-shadow: 0 4px 12px rgba(0,0,0,.08); color: var(--text); transition: all 0.3s ease; cursor:pointer; flex-shrink: 0; min-width: 180px; width: 180px; display: flex; flex-direction: column; padding: 12px; }
+    .cardMove:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(249,115,22,.2); }
+    .cardMove h4 { margin:0 0 12px 0; font-size:14px; color: var(--text); font-weight:700; text-align: center; flex-shrink: 0; }
+    .cardMove .anim { position:relative; aspect-ratio: 1; width: 100%; border-radius:12px; background: linear-gradient(145deg, #fafafa, #f5f5f5); border:1px solid var(--border); overflow:hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .cardMove canvas { position:absolute; inset:0; width:100%; height:100%; }
-    .cardMove p { margin:10px 14px 14px 14px; font-size:13px; color: var(--muted); min-height: 48px; font-weight:600; line-height:1.4; }
-    .cardMove.active { outline: 3px solid var(--primary); outline-offset:2px; box-shadow: 0 12px 24px rgba(249,115,22,.25); }
+    .cardMove p { margin:12px 0 0 0; font-size:13px; color: var(--text); font-weight:700; line-height:1.4; text-align: center; flex-shrink: 0; }
+    .cardMove.active { outline: 3px solid var(--primary); outline-offset:2px; box-shadow: 0 8px 20px rgba(249,115,22,.3); background: rgba(249, 115, 22, 0.1); }
 
     /* Celebration toast */
-    .celebrate { position: absolute; left:50%; top:4%; transform: translateX(-50%); display:none; align-items:center; justify-content:center; z-index: 5; pointer-events:none; }
+    .celebrate { position: fixed; left:50%; top:20%; transform: translateX(-50%); display:none; align-items:center; justify-content:center; z-index: 9999; pointer-events:none; }
     .celebrate .msg { font-weight:900; font-size: clamp(32px, 5vw, 64px); white-space: nowrap; color: transparent; background: linear-gradient(90deg, #f97316, #fb923c, #fbbf24, #fb923c); -webkit-background-clip: text; background-clip: text; text-shadow: 0 8px 28px rgba(249,115,22,.4); animation: pop 800ms ease forwards; }
     @keyframes pop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.08); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
     .celebrate .spark { position:absolute; width:8px; height:8px; border-radius:999px; background: linear-gradient(45deg, #f97316, #fbbf24); box-shadow:0 0 12px rgba(251,191,36,.9); animation: fly 900ms ease forwards; }
@@ -117,39 +127,64 @@
   </style>
 </head>
 <body>
+  <!-- Navigation Bar Space (100px reserved for future navbar) -->
+  <div class="navbarSpace">
+    <!-- Add your navigation bar here -->
+  </div>
+  
   <div class="wrap">
-    <h2 style="background: linear-gradient(45deg, #f97316, #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: clamp(28px, 4vw, 42px); font-weight: 900; margin: 0 0 20px 0; text-align: center;">Move a little game</h2>
-
-    <section class="hero">
-      <div class="heroTop">
-        <div id="moveLabel" class="pillBadge">Move: Chin Tuck</div>
-        <div id="gameScore" class="scoreBadge" style="display:none">Score: -</div>
-        <div class="heroTopRight">
-          <button id="voiceBtn" class="iconBtn" title="Voice on/off" aria-label="Voice">
-            <!-- simple speaker icon -->
-            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 9v6h4l5 4V5L7 9H3z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M16 8a5 5 0 010 8" stroke="white" stroke-width="3" stroke-linecap="round"/>
-            </svg>
-          </button>
-          <button id="settingBtn" class="levelBadge" style="cursor:pointer">Setting</button>
+    <!-- Left Panel: Demo + Cards -->
+    <div class="leftPanel">
+      <div class="demoCard">
+        <h3>Movement demonstration</h3>
+        <div class="anim">
+          <canvas id="demoCanvas"></canvas>
         </div>
       </div>
-      <div class="heroBody">
-        <div class="heroCircle" id="heroCircle">
-          <video id="video" playsinline></video>
-          <canvas id="canvas"></canvas>
-          <canvas id="heroGuide"></canvas>
+      
+      <div class="cardsWrap">
+        <div class="cardsHeader">
+          <strong>Movement cards</strong>
         </div>
+        <div class="cardsScroller" id="cardsScroller"></div>
       </div>
       
       <div class="heroActions">
         <button id="heroPracticeBtn" class="btnPrimary">▶ Practice</button>
         <button id="heroPlayBtn" class="btnGhost">Play</button>
-        <button id="heroFinishBtn" class="btnGhost">Finish</button>
       </div>
-      <div class="heroTip" id="heroTip">Tip: Follow the guide and keep posture steadily.</div>
-    </section>
+    </div>
+
+    <!-- Right Panel: Detection Area -->
+    <div class="rightPanel">
+      <section class="hero">
+        <div class="heroTop">
+          <div id="moveLabel" class="pillBadge">Please choose movement card</div>
+          <div id="gameScore" class="scoreBadge" style="display:none">Score: -</div>
+          <div class="heroTopRight">
+            <button id="voiceBtn" class="iconBtn" title="Voice on/off" aria-label="Voice">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 9v6h4l5 4V5L7 9H3z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16 8a5 5 0 010 8" stroke="white" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button id="settingBtn" class="levelBadge" style="cursor:pointer; display:none;">Setting</button>
+          </div>
+        </div>
+        <div class="heroBody">
+          <div class="heroCircle" id="heroCircle">
+            <video id="video" playsinline></video>
+            <canvas id="canvas"></canvas>
+            <canvas id="heroGuide"></canvas>
+          </div>
+        </div>
+        
+        <div class="heroActions" style="margin-top:12px;">
+          <button id="heroFinishBtn" class="btnGhost">Finish</button>
+        </div>
+        <div class="heroTip" id="heroTip">Tip: Follow the guide and keep posture steadily.</div>
+      </section>
+    </div>
     <div class="toolbar" style="display:none">
       <button id="startBtn">Start Camera</button>
       <button id="stopBtn" disabled>Stop</button>
@@ -213,10 +248,6 @@
       </div>
     </div>
 
-    <div class="cardsWrap">
-      <div class="cardsHeader"><strong>Movement Cards</strong></div>
-      <div id="movementCards" class="cardsScroller"></div>
-    </div>
     <!-- Celebration overlay (anchored within hero to appear over detection area) -->
     <div id="celebrate" class="celebrate"><div class="msg" id="celebrateMsg"></div></div>
     <p class="stats" style="display:none">
@@ -239,7 +270,7 @@
         
       </div>
     </div>
-    <script type="module" src="./main.js?v=26"></script>
+    <script type="module" src="./main.js?v=43"></script>
   </div>
 </body>
 </html> 
