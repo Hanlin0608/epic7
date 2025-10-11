@@ -359,7 +359,7 @@ function loop(t = performance.now()) {
         
         if (currentGesture && currentGesture === loop.lastGestureType) {
           const holdDuration = now - loop.gestureHoldStart;
-          if (holdDuration >= 3000 && timeSinceLastSwitch >= 3000) { // 3 second hold + 3 second cooldown
+          if (holdDuration >= 1000 && timeSinceLastSwitch >= 1000) { // 1 second hold + 1 second cooldown
             if (currentGesture === 'shoulders') {
               const idx = Math.max(0, exerciseOrder.indexOf(currentMode));
               const nextIdx = (idx + 1 + exerciseOrder.length) % exerciseOrder.length;
@@ -370,7 +370,7 @@ function loop(t = performance.now()) {
               speak(tip ? `Next movement! Tip: ${tip}` : 'Next movement!');
               loop.lastGestureSwitchTime = now;
             }
-            loop.gestureHoldStart = now + 3000; // prevent rapid trigger
+            loop.gestureHoldStart = now + 1000; // prevent rapid trigger
             loop.lastGestureType = null;
           }
         } else {
