@@ -110,6 +110,7 @@ const defaultThresholds = {
   quad_stretch: { primary: 70, label: "Knee angle (°)", compare: "<=" },
   y_pose: { primary: 0.18, label: "Wrist above shoulder (norm)", compare: ">=" },
   high_knee_hold: { primary: 100, label: "Hip angle (°)", compare: "<=" },
+  high_knee_hold_right: { primary: 100, label: "Hip angle (°)", compare: "<=" },
   arm_circles: { primary: 0.10, label: "Wrist above shoulder (norm)", compare: ">=" },
   lunge: { primary: 110, label: "Front knee angle (°)", compare: "<=" },
 };
@@ -121,17 +122,18 @@ let currentMode = "overhead_reach";
 let flowMode = "manual"; // manual | auto
 const exerciseOrder = [
   "overhead_reach",
-  "side_bend",
+  // "side_bend", // hidden
   "hamstring_hinge",
   "t_pose",
   // removed lunge and quad_stretch from cards
   "y_pose",
-  "high_knee_hold",
-  "arm_circles",
+  "high_knee_hold", // left leg
+  "high_knee_hold_right", // right leg
+  // "arm_circles", // hidden
 ];
 let autoIndex = 0;
-let userSettings = loadSettings() || { holdSeconds: 5, thresholds: { ...defaultThresholds } };
-function getHoldTargetForMode() { return userSettings.holdSeconds || 5; }
+let userSettings = loadSettings() || { holdSeconds: 1, thresholds: { ...defaultThresholds } };
+function getHoldTargetForMode() { return userSettings.holdSeconds || 1; }
 function getRepsTarget() { return 1; }
 function getPrimaryThreshold(mode) { return (userSettings.thresholds?.[mode]?.primary) ?? defaultThresholds[mode].primary; }
 function getCompare(mode) { return (userSettings.thresholds?.[mode]?.compare) ?? defaultThresholds[mode].compare; }
@@ -161,7 +163,8 @@ const tipsByMode = {
   // squat_hold removed from cards
   quad_stretch: "Stand on one leg and pull the opposite heel toward the glutes; keep knees together; hold.",
   y_pose: "Lift both arms into a wide 'Y' above shoulders; hold.",
-  high_knee_hold: "Lift one knee above hip height and maintain balance; hold.",
+  high_knee_hold: "Lift LEFT knee above hip height and maintain balance; hold.",
+  high_knee_hold_right: "Lift RIGHT knee above hip height and maintain balance; hold.",
   arm_circles: "Small overhead arm circles to mobilize the shoulders.",
   lunge: "Step into a lunge, front knee near 90°, knee tracks toes; hold.",
 };
@@ -173,7 +176,8 @@ const cardDescriptions = {
   t_pose: "Posture & shoulder open.",
   quad_stretch: "Quad flexibility. Balance.",
   y_pose: "Scapular control. 'Y' raise.",
-  high_knee_hold: "Hip flexion. Lift knee high.",
+  high_knee_hold: "Hip flexion. Lift LEFT knee high.",
+  high_knee_hold_right: "Hip flexion. Lift RIGHT knee high.",
   arm_circles: "Shoulder mobility. Small overhead circles.",
   lunge: "Leg strength. Step into a lunge.",
 };
@@ -209,7 +213,8 @@ function evalLunge(lm) {
   const score = Number.isFinite(frontKnee) ? Math.max(0, Math.min(100, Math.round(((Math.max(thr, 1) - Math.min(frontKnee, thr)) / Math.max(1, thr)) * 100))) : 0;
   return { ok, primaryAngle: frontKnee, score };
 }
-function evalHighKneeHold(lm) { const thr = getPrimaryThreshold("high_knee_hold"), cmp = getCompare("high_knee_hold"); const lh = computeAngleDeg(lm[11], lm[23], lm[25]); const rh = computeAngleDeg(lm[12], lm[24], lm[26]); const hipFlex = Number.isFinite(lh) && Number.isFinite(rh) ? Math.min(lh, rh) : (Number.isFinite(lh) ? lh : rh); const ok = compare(hipFlex, cmp, thr); const span = Math.max(1, Math.abs(thr)); const score = Number.isFinite(hipFlex) ? Math.max(0, Math.min(100, Math.round(((Math.max(thr, 1) - Math.min(hipFlex, thr)) / span) * 100))) : 0; return { ok, primaryAngle: hipFlex, score }; }
+function evalHighKneeHold(lm) { const thr = getPrimaryThreshold("high_knee_hold"), cmp = getCompare("high_knee_hold"); const lh = computeAngleDeg(lm[11], lm[23], lm[25]); const hipFlex = lh; const ok = compare(hipFlex, cmp, thr); const span = Math.max(1, Math.abs(thr)); const score = Number.isFinite(hipFlex) ? Math.max(0, Math.min(100, Math.round(((Math.max(thr, 1) - Math.min(hipFlex, thr)) / span) * 100))) : 0; return { ok, primaryAngle: hipFlex, score }; }
+function evalHighKneeHoldRight(lm) { const thr = getPrimaryThreshold("high_knee_hold_right"), cmp = getCompare("high_knee_hold_right"); const rh = computeAngleDeg(lm[12], lm[24], lm[26]); const hipFlex = rh; const ok = compare(hipFlex, cmp, thr); const span = Math.max(1, Math.abs(thr)); const score = Number.isFinite(hipFlex) ? Math.max(0, Math.min(100, Math.round(((Math.max(thr, 1) - Math.min(hipFlex, thr)) / span) * 100))) : 0; return { ok, primaryAngle: hipFlex, score }; }
 
 let voiceEnabled = true;
 function updateVoiceUI() { try { if (!voiceBtn) return; voiceBtn.classList.toggle('muted', !voiceEnabled); } catch {} }
@@ -238,7 +243,8 @@ function renderEval(mode, ev) {
   else if (mode === "quad_stretch") { hipAngleEl.textContent = Number.isFinite(ev.primaryAngle) ? ev.primaryAngle : "-"; verdictMsg = ev.ok ? "Quad stretch OK" : "Bring heel closer to glutes, keep balance"; }
   else if (mode === "y_pose") { verdictMsg = ev.ok ? "Y raise OK" : "Lift arms into 'Y', wrists above shoulders"; }
   else if (mode === "lunge_hold") { verdictMsg = ev.ok ? "Lunge hold OK" : "Bend front knee toward ~90°, track toes"; }
-  else if (mode === "high_knee_hold") { verdictMsg = ev.ok ? "High knee OK" : "Raise knee higher to reduce hip angle"; }
+  else if (mode === "high_knee_hold") { verdictMsg = ev.ok ? "Left knee OK" : "Raise LEFT knee higher to reduce hip angle"; }
+  else if (mode === "high_knee_hold_right") { verdictMsg = ev.ok ? "Right knee OK" : "Raise RIGHT knee higher to reduce hip angle"; }
   verdictEl.textContent = verdictMsg; scoreEl.textContent = `Score: ${Math.round(score)}`; return verdictMsg;
 }
 
@@ -293,7 +299,7 @@ function loop(t = performance.now()) {
     let lm = raw;
     try {
       if (prevLandmarks && prevLandmarks.length === raw.length) {
-        const beta = 0.7; // higher means steadier
+        const beta = 0.5; // balanced smoothing (50% old, 50% new)
         lm = raw.map((p, i) => {
           const q = prevLandmarks[i] || p;
           return {
@@ -322,13 +328,14 @@ function loop(t = performance.now()) {
     else if (currentMode === "lunge") ev = evalLunge(lm);
     else if (currentMode === "arm_circles") ev = evalArmCircles(lm);
     else if (currentMode === "high_knee_hold") ev = evalHighKneeHold(lm);
+    else if (currentMode === "high_knee_hold_right") ev = evalHighKneeHoldRight(lm);
 
     const verdictMsg = renderEval(currentMode, ev);
     if (ev && typeof ev.score === 'number') {
       const nowMs = performance.now();
-      if (nowMs - lastOverlayUpdateMs >= 300) { // update at ~3 fps
+      if (nowMs - lastOverlayUpdateMs >= 100) { // update at ~10 fps for balanced response
         const target = Math.round(ev.score);
-        overlayScorePercent = Math.round(overlayScorePercent * 0.7 + target * 0.3); // smooth
+        overlayScorePercent = Math.round(overlayScorePercent * 0.5 + target * 0.5); // balanced: 50% new, 50% old
         lastOverlayUpdateMs = nowMs;
       }
     }
@@ -655,8 +662,8 @@ stopBtn.addEventListener("click", stop);
 trainBtn.addEventListener("click", () => { training = !training; trainBtn.textContent = training ? "Pause" : "Start Training"; if (!training) { holdSec = 0; requireRelease = false; holdEl.textContent = `Hold: 0.0s / ${holdTargetSec}s`; } });
 modeSelect.addEventListener("change", () => { currentMode = modeSelect.value; holdTargetSec = getHoldTargetForMode(); completedTarget = getRepsTarget(); resetCounters(); tipsEl.textContent = tipsByMode[currentMode] || "Choose an exercise and click 'Start Training'."; settingPrimaryLabelEl.textContent = getPrimaryLabel(currentMode); settingPrimaryEl.value = String(getPrimaryThreshold(currentMode)); if (moveLabelEl) moveLabelEl.textContent = `Move: ${titleForMode(currentMode)}`; });
 flowModeSelect.addEventListener("change", () => { flowMode = flowModeSelect.value; if (flowMode === "auto") { autoIndex = Math.max(0, exerciseOrder.indexOf(currentMode)); } });
-saveSettingsBtn.addEventListener("click", () => { const holdVal = Math.max(1, Math.min(600, Number(settingHoldSecEl.value) || 5)); const primaryVal = Number(settingPrimaryEl.value); userSettings.holdSeconds = holdVal; if (!userSettings.thresholds[currentMode]) userSettings.thresholds[currentMode] = { ...defaultThresholds[currentMode] }; userSettings.thresholds[currentMode].primary = primaryVal; saveSettings(userSettings); holdTargetSec = getHoldTargetForMode(); completedTarget = 1; resetCounters(); holdEl.textContent = `Hold: 0.0s / ${holdTargetSec}s`; completedEl.textContent = `Completed: ${completedCount}/${completedTarget}`; saveToast.style.display = "inline"; setTimeout(() => (saveToast.style.display = "none"), 1200); });
-resetSettingsBtn.addEventListener("click", () => { userSettings = { holdSeconds: 5, thresholds: { ...defaultThresholds } }; saveSettings(userSettings); settingHoldSecEl.value = String(userSettings.holdSeconds); settingPrimaryLabelEl.textContent = getPrimaryLabel(currentMode); settingPrimaryEl.value = String(getPrimaryThreshold(currentMode)); holdTargetSec = getHoldTargetForMode(); completedTarget = 1; resetCounters(); });
+saveSettingsBtn.addEventListener("click", () => { const holdVal = Math.max(1, Math.min(600, Number(settingHoldSecEl.value) || 1)); const primaryVal = Number(settingPrimaryEl.value); userSettings.holdSeconds = holdVal; if (!userSettings.thresholds[currentMode]) userSettings.thresholds[currentMode] = { ...defaultThresholds[currentMode] }; userSettings.thresholds[currentMode].primary = primaryVal; saveSettings(userSettings); holdTargetSec = getHoldTargetForMode(); completedTarget = 1; resetCounters(); holdEl.textContent = `Hold: 0.0s / ${holdTargetSec}s`; completedEl.textContent = `Completed: ${completedCount}/${completedTarget}`; saveToast.style.display = "inline"; setTimeout(() => (saveToast.style.display = "none"), 1200); });
+resetSettingsBtn.addEventListener("click", () => { userSettings = { holdSeconds: 1, thresholds: { ...defaultThresholds } }; saveSettings(userSettings); settingHoldSecEl.value = String(userSettings.holdSeconds); settingPrimaryLabelEl.textContent = getPrimaryLabel(currentMode); settingPrimaryEl.value = String(getPrimaryThreshold(currentMode)); holdTargetSec = getHoldTargetForMode(); completedTarget = 1; resetCounters(); });
 
 function resetCounters() { holdSec = 0; completedCount = 0; requireRelease = false; holdEl.textContent = `Hold: ${holdSec.toFixed(1)}s / ${holdTargetSec}s`; completedEl.textContent = `Completed: ${completedCount}/${completedTarget}`; }
 // Ensure progress resets initially
@@ -711,7 +718,8 @@ function titleForMode(mode) {
     t_pose: "T Pose",
     quad_stretch: "Quad Stretch",
     y_pose: "Y Raise",
-    high_knee_hold: "High Knee Hold",
+    high_knee_hold: "High Knee Hold (Left)",
+    high_knee_hold_right: "High Knee Hold (Right)",
     arm_circles: "Arm Circles",
     lunge: "Lunge",
   }; return names[mode] || mode;
@@ -782,7 +790,7 @@ function renderStickFigure(g, W, H, phase, mode, scale = 1, yOffset = 0) {
   if (mode === "chin_tuck") { const dy = -headR*0.45 * (0.5 + 0.5*s); drawTorso(); drawArms(); drawLegs(); g.beginPath(); g.arc(head.x, head.y + dy, headR, 0, Math.PI*2); g.stroke(); }
   else if (mode === "overhead_reach") { lArm = {x:-armLen*0.12, y:-torsoLen - armLen*(1.10+0.20*s)}; rArm = {x: armLen*0.12, y:-torsoLen - armLen*(1.10-0.20*s)}; drawTorso(); drawArms(); drawLegs(); drawHead(); }
   else if (mode === "side_bend") { const bend = 0.50*s; g.rotate(bend); drawTorso(); drawArms(); drawLegs(); drawHead(); }
-  else if (mode === "hamstring_hinge") { const hinge = -0.90*(0.5+0.5*s); g.save(); g.translate(hip.x, hip.y); g.rotate(hinge); g.beginPath(); g.moveTo(0,0); g.lineTo(0,-torsoLen); g.stroke(); g.beginPath(); g.arc(0,-torsoLen - headR*1.8, headR, 0, Math.PI*2); g.stroke(); g.restore(); drawLegs(); }
+  else if (mode === "hamstring_hinge") { const hinge = -0.90; lArm = {x:-armLen*0.3, y:-torsoLen - armLen*0.4}; rArm = {x: armLen*0.3, y:-torsoLen - armLen*0.4}; g.save(); g.translate(hip.x, hip.y); g.rotate(hinge); g.beginPath(); g.moveTo(0,0); g.lineTo(0,-torsoLen); g.stroke(); g.beginPath(); g.moveTo(0, -torsoLen); g.lineTo(lArm.x, lArm.y); g.stroke(); g.beginPath(); g.moveTo(0, -torsoLen); g.lineTo(rArm.x, rArm.y); g.stroke(); g.beginPath(); g.arc(0,-torsoLen - headR*1.8, headR, 0, Math.PI*2); g.stroke(); g.restore(); drawLegs(); }
   else if (mode === "t_pose") { lArm = {x:-armLen*1.35, y:-torsoLen - armLen*0.05*s}; rArm = {x: armLen*1.35, y:-torsoLen + armLen*0.05*s}; drawTorso(); drawArms(); drawLegs(); drawHead(); }
   else if (mode === "lunge") { let rKnee={x: legLen*0.60, y: legLen*0.60}, rFoot={x: legLen*0.95, y: legLen}; let lKnee={x:-legLen*0.30, y: legLen*0.85}, lFoot={x:-legLen*0.55, y: legLen}; drawTorso(); drawArms(); drawLegs(); drawHead(); }
   else if (mode === "quad_stretch") { lKnee = {x:-legLen*0.12, y: legLen*0.40}; lFoot = {x:-legLen*0.15, y: -legLen*0.05}; drawTorso(); drawArms(); drawLegs(); drawHead(); }
@@ -796,9 +804,21 @@ function renderStickFigure(g, W, H, phase, mode, scale = 1, yOffset = 0) {
       drawTorso(); drawArms(); drawLegs(); drawHead();
     }
   else if (mode === "high_knee_hold") {
-    // 强化左腿抬膝的可见度：加大外展与高度，远离躯干
-    lKnee = { x: -legLen*(0.45 + 0.05*s), y: legLen*(0.20 - 0.05*s) };
-    lFoot = { x: -legLen*(0.55 + 0.05*s), y: legLen*(0.08 - 0.03*s) };
+    // 双臂完全平伸（类似T pose）
+    lArm = {x:-armLen*1.35, y:-torsoLen};
+    rArm = {x: armLen*1.35, y:-torsoLen};
+    // 左腿抬高：大腿几乎水平向前伸展，小腿垂直向下
+    lKnee = { x: -legLen*0.65, y: -legLen*0.05 }; // 大腿水平向前
+    lFoot = { x: -legLen*0.65, y: legLen*0.40 };  // 小腿垂直向下（x与膝盖相同）
+    drawTorso(); drawArms(); drawLegs(); drawHead();
+  }
+  else if (mode === "high_knee_hold_right") {
+    // 双臂完全平伸（类似T pose）
+    lArm = {x:-armLen*1.35, y:-torsoLen};
+    rArm = {x: armLen*1.35, y:-torsoLen};
+    // 右腿抬高：大腿几乎水平向前伸展，小腿垂直向下
+    rKnee = { x: legLen*0.65, y: -legLen*0.05 }; // 大腿水平向前
+    rFoot = { x: legLen*0.65, y: legLen*0.40 };  // 小腿垂直向下（x与膝盖相同）
     drawTorso(); drawArms(); drawLegs(); drawHead();
   }
   else { drawTorso(); drawArms(); drawLegs(); drawHead(); }
@@ -834,10 +854,10 @@ if (scoreModeBtn) scoreModeBtn.addEventListener('click', async () => {
 
 if (heroPracticeBtn) heroPracticeBtn.addEventListener('click', async () => { practiceMode = true; scoreMode = false; flowMode = 'manual'; setStatus('Practice mode'); try { if (!stream) await start(); } catch {} training = true; trainBtn.textContent = 'Pause'; updateHeroButtonsForPractice(); });
 if (heroPlayBtn) heroPlayBtn.addEventListener('click', async () => {
-  // Start score mode sequence: auto flow, 1 rep each, hold 3s
+  // Start score mode sequence: auto flow, 1 rep each, hold 1s
   practiceMode = false; scoreMode = true; flowMode = 'auto';
   autoIndex = 0; currentMode = exerciseOrder[0]; modeSelect.value = currentMode; if (moveLabelEl) moveLabelEl.textContent = `Move: ${titleForMode(currentMode)}`;
-  holdTargetSec = 3; completedTarget = 1; resetCounters(); totalScore = 0; totalSamples = 0; setStatus('Score mode');
+  holdTargetSec = 1; completedTarget = 1; resetCounters(); totalScore = 0; totalSamples = 0; setStatus('Score mode');
   try { if (!stream) await start(); } catch {}
   training = true; trainBtn.textContent = 'Pause';
   // hide setting while playing
