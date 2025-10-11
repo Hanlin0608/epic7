@@ -41,7 +41,7 @@
     .guide canvas { position:absolute; inset:0; width:100%; height:100%; }
 
     .stage { position: relative; flex: 1 1 600px; min-width: 320px; aspect-ratio: 4/3; background: linear-gradient(145deg, #fafafa, #f5f5f5); border-radius:20px; overflow:hidden; border:1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,.15); }
-    video, canvas#canvas { position:absolute; inset:0; width:100%; height:100%; object-fit: contain; }
+    video, canvas#canvas { position:absolute; inset:0; width:100%; height:100%; object-fit: cover; }
     video { transform: scaleX(-1); }
 
     .stats { margin-top: 12px; font-size: 14px; color: var(--text); }
@@ -117,9 +117,10 @@
     .cardMove canvas { position:absolute; inset:0; width:100%; height:100%; }
     .cardMove p { margin:12px 0 0 0; font-size:13px; color: var(--text); font-weight:700; line-height:1.4; text-align: center; flex-shrink: 0; }
     .cardMove.active { outline: 3px solid var(--primary); outline-offset:2px; box-shadow: 0 8px 20px rgba(249,115,22,.3); background: rgba(249, 115, 22, 0.1); }
+    .cardMove.disabled { cursor: not-allowed; opacity: 0.6; pointer-events: none; }
 
     /* Celebration toast */
-    .celebrate { position: fixed; left:50%; top:20%; transform: translateX(-50%); display:none; align-items:center; justify-content:center; z-index: 9999; pointer-events:none; }
+    .celebrate { position: fixed; left:50%; top:50%; transform: translate(-50%, -50%); display:none; align-items:center; justify-content:center; z-index: 9999; pointer-events:none; }
     .celebrate .msg { font-weight:900; font-size: clamp(32px, 5vw, 64px); white-space: nowrap; color: transparent; background: linear-gradient(90deg, #f97316, #fb923c, #fbbf24, #fb923c); -webkit-background-clip: text; background-clip: text; text-shadow: 0 8px 28px rgba(249,115,22,.4); animation: pop 800ms ease forwards; }
     @keyframes pop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.08); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
     .celebrate .spark { position:absolute; width:8px; height:8px; border-radius:999px; background: linear-gradient(45deg, #f97316, #fbbf24); box-shadow:0 0 12px rgba(251,191,36,.9); animation: fly 900ms ease forwards; }
@@ -150,8 +151,7 @@
       </div>
       
       <div class="heroActions">
-        <button id="heroPracticeBtn" class="btnPrimary">▶ Practice</button>
-        <button id="heroPlayBtn" class="btnGhost">Play</button>
+        <button id="heroPlayBtn" class="btnPrimary">▶ Play</button>
       </div>
     </div>
 
@@ -168,7 +168,8 @@
                 <path d="M16 8a5 5 0 010 8" stroke="white" stroke-width="3" stroke-linecap="round"/>
               </svg>
             </button>
-            <button id="settingBtn" class="levelBadge" style="cursor:pointer; display:none;">Setting</button>
+            <!-- Setting button hidden -->
+            <button id="settingBtn" class="levelBadge" style="display:none !important;">Setting</button>
           </div>
         </div>
         <div class="heroBody">
@@ -179,9 +180,6 @@
           </div>
         </div>
         
-        <div class="heroActions" style="margin-top:12px;">
-          <button id="heroFinishBtn" class="btnGhost">Finish</button>
-        </div>
         <div class="heroTip" id="heroTip">Tip: Follow the guide and keep posture steadily.</div>
       </section>
     </div>
@@ -270,7 +268,7 @@
         
       </div>
     </div>
-    <script type="module" src="./main.js?v=54"></script>
+    <script type="module" src="./main.js?v=61"></script>
   </div>
 </body>
 </html> 

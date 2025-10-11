@@ -48,9 +48,7 @@ const practiceModeBtn = document.getElementById("practiceModeBtn");
 const scoreModeBtn = document.getElementById("scoreModeBtn");
 // Hero elements
 const moveLabelEl = document.getElementById("moveLabel");
-const heroPracticeBtn = document.getElementById("heroPracticeBtn");
 const heroPlayBtn = document.getElementById("heroPlayBtn");
-const heroFinishBtn = document.getElementById("heroFinishBtn");
 const heroTipEl = document.getElementById("heroTip");
 const gameScoreEl = document.getElementById("gameScore");
 // Settings modal elements
@@ -430,6 +428,22 @@ function loop(t = performance.now()) {
                 holdTargetSec = getHoldTargetForMode();
                 completedTarget = getRepsTarget();
                 resetCounters();
+                
+                // Update card highlighting and demo canvas for auto-switch
+                document.querySelectorAll('.cardMove').forEach(el => {
+                  el.classList.remove('active');
+                  // In Play mode, keep all non-active cards disabled
+                  if (scoreMode) el.classList.add('disabled');
+                });
+                const nextCardEl = getCardElForMode(currentMode);
+                if (nextCardEl) {
+                  nextCardEl.classList.add('active');
+                  nextCardEl.classList.remove('disabled'); // Enable current card for visual clarity
+                  try { nextCardEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch {}
+                }
+                updateDemoCanvas(currentMode);
+                if (heroTipEl) heroTipEl.textContent = `Tip: ${tipsByMode[currentMode]}`;
+                
                 verdictEl.textContent = "Switched to next";
                 speak("Switching to next exercise");
               }
@@ -471,7 +485,7 @@ async function start() {
   try {
     await createLandmarker();
     setStatus("Requesting camera…");
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 960, height: 720 } });
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1440 } } });
     videoEl.srcObject = stream;
     await videoEl.play();
 
@@ -555,7 +569,7 @@ function drawFitOverlay(pct) {
   const label = `Fit: ${Math.max(0, Math.min(100, Math.round(pct)))}%`;
   const paddingX = 20, paddingY = 14; g.save(); g.font = '800 42px system-ui, -apple-system, Segoe UI, Roboto'; // Larger font
   const textW = g.measureText(label).width; const pillW = textW + paddingX * 2; const pillH = 64; // Larger pill
-  const x = Math.round(W - pillW - 20); const y = 20; // top-right corner
+  const x = Math.round(W - pillW - 20); const y = 120; // moved down to avoid obstruction
   g.globalAlpha = 0.95; g.fillStyle = 'rgba(2,6,23,0.75)'; g.strokeStyle = 'rgba(148,163,184,0.7)';
   drawRoundedRect(g, x, y, pillW, pillH, 16); g.fill(); g.lineWidth = 2; g.stroke();
   g.globalAlpha = 1; g.fillStyle = '#f0f9ff'; g.textBaseline = 'middle'; g.fillText(label, x + paddingX, y + pillH / 2);
@@ -826,6 +840,12 @@ function renderStickFigure(g, W, H, phase, mode, scale = 1, yOffset = 0) {
 }
 
 async function onCardClick(mode, cardEl) {
+  // Prevent manual card switching in Play mode (scoreMode)
+  if (scoreMode) {
+    speak("Please complete current exercise to proceed");
+    return;
+  }
+  
   document.querySelectorAll('.cardMove').forEach(el => el.classList.remove('active'));
   if (cardEl) cardEl.classList.add('active');
   currentMode = mode; modeSelect.value = currentMode; holdTargetSec = getHoldTargetForMode(); completedTarget = 1; resetCounters();
@@ -852,26 +872,49 @@ if (scoreModeBtn) scoreModeBtn.addEventListener('click', async () => {
   try { if (!stream) await start(); else { training = true; trainBtn.textContent = 'Pause'; } } catch {}
 });
 
-if (heroPracticeBtn) heroPracticeBtn.addEventListener('click', async () => { practiceMode = true; scoreMode = false; flowMode = 'manual'; setStatus('Practice mode'); try { if (!stream) await start(); } catch {} training = true; trainBtn.textContent = 'Pause'; updateHeroButtonsForPractice(); });
+// Play/Finish button toggle logic
 if (heroPlayBtn) heroPlayBtn.addEventListener('click', async () => {
-  // Start score mode sequence: auto flow, 1 rep each, hold 1s
-  practiceMode = false; scoreMode = true; flowMode = 'auto';
-  autoIndex = 0; currentMode = exerciseOrder[0]; modeSelect.value = currentMode; if (moveLabelEl) moveLabelEl.textContent = `Move: ${titleForMode(currentMode)}`;
-  holdTargetSec = 1; completedTarget = 1; resetCounters(); totalScore = 0; totalSamples = 0; setStatus('Score mode');
-  try { if (!stream) await start(); } catch {}
-  training = true; trainBtn.textContent = 'Pause';
-  // hide setting while playing
-  try { if (settingBtn) settingBtn.style.display = 'none'; } catch {}
-  // In Play mode: hide Practice, show Finish
-  updateHeroButtonsForPlay();
-  // show score badge and reset timing
-  if (gameScoreEl) { gameScoreEl.style.display = ''; gameScoreEl.textContent = 'Score: -'; }
-  playStartMs = performance.now();
+  // Check current button text to determine action
+  const isPlayMode = heroPlayBtn.textContent.includes('Play');
+  
+  if (isPlayMode) {
+    // Start Play mode
+    practiceMode = false; scoreMode = true; flowMode = 'auto';
+    autoIndex = 0; currentMode = exerciseOrder[0]; modeSelect.value = currentMode; 
+    if (moveLabelEl) moveLabelEl.textContent = `Move: ${titleForMode(currentMode)}`;
+    holdTargetSec = 1; completedTarget = 1; resetCounters(); totalScore = 0; totalSamples = 0; setStatus('Score mode');
+    try { if (!stream) await start(); } catch {}
+    training = true; trainBtn.textContent = 'Pause';
+    // hide setting while playing
+    try { if (settingBtn) settingBtn.style.display = 'none'; } catch {}
+    // Update button to show Finish
+    updateHeroButtonsForPlay();
+    // show score badge and reset timing
+    if (gameScoreEl) { gameScoreEl.style.display = ''; gameScoreEl.textContent = 'Score: -'; }
+    playStartMs = performance.now();
+    
+    // Initialize first card highlighting and demo canvas
+    document.querySelectorAll('.cardMove').forEach(el => el.classList.remove('active'));
+    const firstCardEl = getCardElForMode(exerciseOrder[0]);
+    if (firstCardEl) {
+      firstCardEl.classList.add('active');
+      try { firstCardEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch {}
+    }
+    updateDemoCanvas(exerciseOrder[0]);
+    if (heroTipEl) heroTipEl.textContent = `Tip: ${tipsByMode[exerciseOrder[0]]}`;
+  } else {
+    // Finish mode - return to practice
+    training = false; trainBtn.textContent = 'Start Training'; 
+    speak('Session finished'); 
+    practiceMode = true; scoreMode = false; 
+    updateHeroButtonsForPractice();
+    // Show setting button again
+    try { if (settingBtn) settingBtn.style.display = ''; } catch {}
+  }
 });
-if (heroFinishBtn) heroFinishBtn.addEventListener('click', () => { training = false; trainBtn.textContent = 'Start Training'; speak('Session finished'); practiceMode = true; scoreMode = false; updateHeroButtonsForPractice(); });
-// When finishing or stopping, show setting again
+
+// When stopping, show setting again
 function showSettingButton() { try { if (settingBtn) settingBtn.style.display = ''; } catch {} }
-heroFinishBtn && heroFinishBtn.addEventListener('click', showSettingButton);
 stopBtn && stopBtn.addEventListener('click', () => { showSettingButton(); updateHeroButtonsForPractice(); });
 
 // Settings modal behavior
@@ -900,20 +943,32 @@ renderMovementCards();
 
 // ---- UI helpers for hero buttons ----
 function updateHeroButtonsForPractice() {
-  if (heroPracticeBtn) heroPracticeBtn.style.display = '';
-  if (heroFinishBtn) heroFinishBtn.style.display = 'none';
-  // Play 按钮在练习模式下保持灰色（次要）
-  if (heroPlayBtn) { heroPlayBtn.classList.remove('btnPrimary'); heroPlayBtn.classList.add('btnGhost'); }
+  // Play button shows "Play" text and keeps orange color
+  if (heroPlayBtn) { 
+    heroPlayBtn.textContent = '▶ Play';
+    heroPlayBtn.classList.remove('btnGhost'); 
+    heroPlayBtn.classList.add('btnPrimary'); 
+  }
   // Hide score badge in practice
   if (gameScoreEl) gameScoreEl.style.display = 'none';
+  // Enable card clicking in practice mode
+  document.querySelectorAll('.cardMove').forEach(card => card.classList.remove('disabled'));
 }
 function updateHeroButtonsForPlay() {
-  if (heroPracticeBtn) heroPracticeBtn.style.display = 'none';
-  if (heroFinishBtn) heroFinishBtn.style.display = '';
-  // Play 按钮在播放模式下使用主色（绿色）
-  if (heroPlayBtn) { heroPlayBtn.classList.remove('btnGhost'); heroPlayBtn.classList.add('btnPrimary'); }
+  // Play button changes to "Finish" text and keeps orange color
+  if (heroPlayBtn) { 
+    heroPlayBtn.textContent = 'Finish';
+    heroPlayBtn.classList.remove('btnGhost'); 
+    heroPlayBtn.classList.add('btnPrimary'); 
+  }
   // Show score badge in play
   if (gameScoreEl) gameScoreEl.style.display = '';
+  // Disable card clicking in play mode (except current active card for visual reference)
+  document.querySelectorAll('.cardMove').forEach(card => {
+    if (!card.classList.contains('active')) {
+      card.classList.add('disabled');
+    }
+  });
 }
 // Default state on entry: Practice mode UI
 updateHeroButtonsForPractice();
