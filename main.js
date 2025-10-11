@@ -4,6 +4,42 @@ const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmark
 const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm";
 
 // Elements
+// Welcome modal
+const welcomeModal = document.getElementById("welcomeModal");
+const welcomeGoBtn = document.getElementById("welcomeGoBtn");
+// Guide modal 1 - Cards
+const guideModal = document.getElementById("guideModal");
+const guideNextBtn = document.getElementById("guideNextBtn");
+const spotlightBox = document.getElementById("spotlightBox");
+// Guide modal 2 - Demo
+const guideModal2 = document.getElementById("guideModal2");
+const guideNext2Btn = document.getElementById("guideNext2Btn");
+const spotlightBox2 = document.getElementById("spotlightBox2");
+// Guide modal 3 - Detection Area
+const guideModal3 = document.getElementById("guideModal3");
+const guideNext3Btn = document.getElementById("guideNext3Btn");
+const spotlightBox3 = document.getElementById("spotlightBox3");
+// Guide modal 4 - Tip Area
+const guideModal4 = document.getElementById("guideModal4");
+const guideNext4Btn = document.getElementById("guideNext4Btn");
+const spotlightBox4 = document.getElementById("spotlightBox4");
+// Guide modal 5 - Fit Area
+const guideModal5 = document.getElementById("guideModal5");
+const guideNext5Btn = document.getElementById("guideNext5Btn");
+const spotlightBox5 = document.getElementById("spotlightBox5");
+// Guide modal 6 - Voice Button
+const guideModal6 = document.getElementById("guideModal6");
+const guideNext6Btn = document.getElementById("guideNext6Btn");
+const spotlightBox6 = document.getElementById("spotlightBox6");
+// Guide modal 7 - Gesture Control (Cards again)
+const guideModal7 = document.getElementById("guideModal7");
+const guideNext7Btn = document.getElementById("guideNext7Btn");
+const spotlightBox7 = document.getElementById("spotlightBox7");
+// Guide modal 8 - Play Button
+const guideModal8 = document.getElementById("guideModal8");
+const guideTryBtn = document.getElementById("guideTryBtn");
+const spotlightBox8 = document.getElementById("spotlightBox8");
+
 const videoEl = document.getElementById("video");
 const canvasEl = document.getElementById("canvas");
 const ctx = canvasEl.getContext("2d");
@@ -51,6 +87,7 @@ const moveLabelEl = document.getElementById("moveLabel");
 const heroPlayBtn = document.getElementById("heroPlayBtn");
 const heroTipEl = document.getElementById("heroTip");
 const gameScoreEl = document.getElementById("gameScore");
+const fitBadgeEl = document.getElementById("fitBadge");
 // Settings modal elements
 const settingBtn = document.getElementById("settingBtn");
 const settingsModal = document.getElementById("settingsModal");
@@ -408,7 +445,7 @@ function loop(t = performance.now()) {
                   // More generous scoring: boost quality score and increase base score
                   const boostedQuality = Math.min(100, Math.round(quality * 1.3 + 15)); // 30% boost + 15 base points
                   const boostedSpeed = Math.min(100, Math.round(speedFactor * 1.2 + 10)); // 20% boost + 10 base points
-                  const finalScore = Math.round(0.7 * boostedQuality + 0.3 * boostedSpeed);
+                  const finalScore = Math.round(0.85 * boostedQuality + 0.15 * boostedSpeed); // 85% quality, 15% speed
                   verdictEl.textContent = `Final score: ${finalScore}`;
                   if (gameScoreEl) gameScoreEl.textContent = `Score: ${finalScore}`;
                   // Encouraging feedback based on score
@@ -476,8 +513,8 @@ function loop(t = performance.now()) {
 
   // Optional: drawPoseMask and animated guide removed per request for a clean view
   ctx.restore();
-  // Draw score overlay (not mirrored)
-  try { drawFitOverlay(overlayScorePercent); } catch {}
+  // Update Fit badge in HTML instead of drawing on canvas
+  try { updateFitBadge(overlayScorePercent); } catch {}
 }
 
 async function start() {
@@ -505,7 +542,12 @@ async function start() {
     stopBtn.disabled = false;
     trainBtn.disabled = false;
 
-    if (!rafId) loop();
+    // Ensure the detection loop starts
+    // Clear any existing animation frame first
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    // Always start the loop
+    loop();
   } catch (e) {
     console.error(e);
     setStatus("Camera or model init failed");
@@ -563,17 +605,10 @@ function drawRoundedRect(g, x, y, w, h, r) {
   g.closePath();
 }
 
-function drawFitOverlay(pct) {
-  if (!Number.isFinite(pct) || !canvasEl) return;
-  const g = ctx; const W = canvasEl.width, H = canvasEl.height;
-  const label = `Fit: ${Math.max(0, Math.min(100, Math.round(pct)))}%`;
-  const paddingX = 20, paddingY = 14; g.save(); g.font = '800 42px system-ui, -apple-system, Segoe UI, Roboto'; // Larger font
-  const textW = g.measureText(label).width; const pillW = textW + paddingX * 2; const pillH = 64; // Larger pill
-  const x = Math.round(W - pillW - 20); const y = 120; // moved down to avoid obstruction
-  g.globalAlpha = 0.95; g.fillStyle = 'rgba(2,6,23,0.75)'; g.strokeStyle = 'rgba(148,163,184,0.7)';
-  drawRoundedRect(g, x, y, pillW, pillH, 16); g.fill(); g.lineWidth = 2; g.stroke();
-  g.globalAlpha = 1; g.fillStyle = '#f0f9ff'; g.textBaseline = 'middle'; g.fillText(label, x + paddingX, y + pillH / 2);
-  g.restore();
+function updateFitBadge(pct) {
+  if (!Number.isFinite(pct) || !fitBadgeEl) return;
+  const fitValue = Math.max(0, Math.min(100, Math.round(pct)));
+  fitBadgeEl.textContent = `Fit: ${fitValue}%`;
 }
 
 // ---- Pose mask (guide frame) ----
@@ -691,7 +726,7 @@ settingHoldSecEl.value = String(userSettings.holdSeconds);
 settingPrimaryLabelEl.textContent = getPrimaryLabel(currentMode);
 settingPrimaryEl.value = String(getPrimaryThreshold(currentMode));
 completedTarget = 1;
-resetCounters(); if (tipsEl) tipsEl.textContent = tipsByMode[currentMode]; if (moveLabelEl) moveLabelEl.textContent = "Please choose movement card"; if (heroTipEl) heroTipEl.textContent = `Tip: ${tipsByMode[currentMode]}`; setStatus('Practice mode');
+resetCounters(); if (tipsEl) tipsEl.textContent = tipsByMode[currentMode]; if (moveLabelEl) moveLabelEl.textContent = "Please choose movement card"; if (heroTipEl) heroTipEl.textContent = "Tip:"; setStatus('Practice mode');
 
 // Movement cards rendering
 function renderMovementCards() {
@@ -902,6 +937,10 @@ if (heroPlayBtn) heroPlayBtn.addEventListener('click', async () => {
     }
     updateDemoCanvas(exerciseOrder[0]);
     if (heroTipEl) heroTipEl.textContent = `Tip: ${tipsByMode[exerciseOrder[0]]}`;
+    
+    // Show play start message with celebration effect
+    showCelebration('The play begins! Complete each move in order.');
+    speak('The play begins! Complete each move in order.');
   } else {
     // Finish mode - return to practice
     training = false; trainBtn.textContent = 'Start Training'; 
@@ -941,6 +980,290 @@ updateVoiceUI();
 initDemoCanvas();
 renderMovementCards();
 
+// ---- Welcome modal logic ----
+// Show welcome modal on first load (check if user has seen it before)
+function showWelcomeModal() {
+  if (welcomeModal) {
+    welcomeModal.classList.remove('hidden');
+  }
+}
+
+function closeWelcomeModal() {
+  if (welcomeModal) {
+    welcomeModal.classList.add('hidden');
+    // Store that user has seen the welcome
+    localStorage.setItem('pose_game_welcomed', 'true');
+    // Show the guide modal after welcome
+    showGuideModal();
+  }
+}
+
+// Check if user has been welcomed before
+const hasBeenWelcomed = localStorage.getItem('pose_game_welcomed');
+if (!hasBeenWelcomed) {
+  showWelcomeModal();
+}
+
+// Go button closes the welcome modal and shows guide
+if (welcomeGoBtn) {
+  welcomeGoBtn.addEventListener('click', closeWelcomeModal);
+}
+
+// ---- Guide modal logic (Cards spotlight) ----
+function showGuideModal() {
+  if (guideModal && spotlightBox) {
+    // Position spotlight on the Movement cards area
+    const cardsWrap = document.querySelector('.cardsWrap');
+    if (cardsWrap) {
+      const rect = cardsWrap.getBoundingClientRect();
+      spotlightBox.style.left = `${rect.left}px`;
+      spotlightBox.style.top = `${rect.top}px`;
+      spotlightBox.style.width = `${rect.width}px`;
+      spotlightBox.style.height = `${rect.height}px`;
+    }
+    guideModal.classList.remove('hidden');
+  }
+}
+
+function closeGuideModal() {
+  if (guideModal) {
+    guideModal.classList.add('hidden');
+    // Show the second guide modal after the first
+    showGuideModal2();
+  }
+}
+
+// Next button in first guide modal shows the second guide modal
+if (guideNextBtn) {
+  guideNextBtn.addEventListener('click', closeGuideModal);
+}
+
+// ---- Guide modal 2 logic (Demo spotlight) ----
+function showGuideModal2() {
+  if (guideModal2 && spotlightBox2) {
+    // Position spotlight on the Movement demonstration area
+    const demoCard = document.querySelector('.demoCard');
+    if (demoCard) {
+      const rect = demoCard.getBoundingClientRect();
+      spotlightBox2.style.left = `${rect.left}px`;
+      spotlightBox2.style.top = `${rect.top}px`;
+      spotlightBox2.style.width = `${rect.width}px`;
+      spotlightBox2.style.height = `${rect.height}px`;
+    }
+    guideModal2.classList.remove('hidden');
+  }
+}
+
+function closeGuideModal2() {
+  if (guideModal2) {
+    guideModal2.classList.add('hidden');
+    // Show the third guide modal after the second
+    showGuideModal3();
+  }
+}
+
+// Next button in second guide modal shows the third guide modal
+if (guideNext2Btn) {
+  guideNext2Btn.addEventListener('click', closeGuideModal2);
+}
+
+// ---- Guide modal 3 logic (Detection Area spotlight) ----
+function showGuideModal3() {
+  if (guideModal3 && spotlightBox3) {
+    // Position spotlight on the detection area (right panel hero section)
+    const hero = document.querySelector('.hero');
+    if (hero) {
+      const rect = hero.getBoundingClientRect();
+      spotlightBox3.style.left = `${rect.left}px`;
+      spotlightBox3.style.top = `${rect.top}px`;
+      spotlightBox3.style.width = `${rect.width}px`;
+      spotlightBox3.style.height = `${rect.height}px`;
+    }
+    guideModal3.classList.remove('hidden');
+  }
+}
+
+function closeGuideModal3() {
+  if (guideModal3) {
+    guideModal3.classList.add('hidden');
+    // Show the fourth guide modal after the third
+    showGuideModal4();
+  }
+}
+
+// Next button in third guide modal shows the fourth guide modal
+if (guideNext3Btn) {
+  guideNext3Btn.addEventListener('click', closeGuideModal3);
+}
+
+// ---- Guide modal 4 logic (Tip Area spotlight) ----
+function showGuideModal4() {
+  if (guideModal4 && spotlightBox4) {
+    // Position spotlight on the Tip area
+    const heroTip = document.querySelector('.heroTip');
+    if (heroTip) {
+      const rect = heroTip.getBoundingClientRect();
+      // Add some padding around the tip for better visual effect
+      const padding = 16;
+      spotlightBox4.style.left = `${rect.left - padding}px`;
+      spotlightBox4.style.top = `${rect.top - padding}px`;
+      spotlightBox4.style.width = `${rect.width + padding * 2}px`;
+      spotlightBox4.style.height = `${rect.height + padding * 2}px`;
+    }
+    guideModal4.classList.remove('hidden');
+  }
+}
+
+function closeGuideModal4() {
+  if (guideModal4) {
+    guideModal4.classList.add('hidden');
+    // Show the fifth guide modal after the fourth
+    showGuideModal5();
+  }
+}
+
+// Next button in fourth guide modal shows the fifth guide modal
+if (guideNext4Btn) {
+  guideNext4Btn.addEventListener('click', closeGuideModal4);
+}
+
+// ---- Guide modal 5 logic (Fit Area spotlight) ----
+function showGuideModal5() {
+  if (guideModal5 && spotlightBox5) {
+    // Position spotlight on the Fit badge
+    const fitBadge = document.getElementById('fitBadge');
+    if (fitBadge) {
+      const rect = fitBadge.getBoundingClientRect();
+      // Add some padding around the fit badge for better visual effect
+      const padding = 16;
+      spotlightBox5.style.left = `${rect.left - padding}px`;
+      spotlightBox5.style.top = `${rect.top - padding}px`;
+      spotlightBox5.style.width = `${rect.width + padding * 2}px`;
+      spotlightBox5.style.height = `${rect.height + padding * 2}px`;
+    }
+    guideModal5.classList.remove('hidden');
+  }
+}
+
+function closeGuideModal5() {
+  if (guideModal5) {
+    guideModal5.classList.add('hidden');
+    // Show the sixth guide modal after the fifth
+    showGuideModal6();
+  }
+}
+
+// Next button in fifth guide modal shows the sixth guide modal
+if (guideNext5Btn) {
+  guideNext5Btn.addEventListener('click', closeGuideModal5);
+}
+
+// ---- Guide modal 6 logic (Voice Button spotlight) ----
+function showGuideModal6() {
+  if (guideModal6 && spotlightBox6) {
+    // Position spotlight on the Voice button
+    const voiceBtn = document.getElementById('voiceBtn');
+    if (voiceBtn) {
+      const rect = voiceBtn.getBoundingClientRect();
+      // Add some padding around the voice button for better visual effect
+      const padding = 16;
+      spotlightBox6.style.left = `${rect.left - padding}px`;
+      spotlightBox6.style.top = `${rect.top - padding}px`;
+      spotlightBox6.style.width = `${rect.width + padding * 2}px`;
+      spotlightBox6.style.height = `${rect.height + padding * 2}px`;
+    }
+    guideModal6.classList.remove('hidden');
+  }
+}
+
+function closeGuideModal6() {
+  if (guideModal6) {
+    guideModal6.classList.add('hidden');
+    // Show the seventh guide modal after the sixth
+    showGuideModal7();
+  }
+}
+
+// Next button in sixth guide modal shows the seventh guide modal
+if (guideNext6Btn) {
+  guideNext6Btn.addEventListener('click', closeGuideModal6);
+}
+
+// ---- Guide modal 7 logic (Gesture Control - Cards spotlight again) ----
+function showGuideModal7() {
+  if (guideModal7 && spotlightBox7) {
+    // Position spotlight on the cards area (same as guide modal 1)
+    const cardsWrap = document.querySelector('.cardsWrap');
+    if (cardsWrap) {
+      const rect = cardsWrap.getBoundingClientRect();
+      spotlightBox7.style.left = `${rect.left}px`;
+      spotlightBox7.style.top = `${rect.top}px`;
+      spotlightBox7.style.width = `${rect.width}px`;
+      spotlightBox7.style.height = `${rect.height}px`;
+    }
+    guideModal7.classList.remove('hidden');
+  }
+}
+
+function closeGuideModal7() {
+  if (guideModal7) {
+    guideModal7.classList.add('hidden');
+    // Show the eighth guide modal after the seventh
+    showGuideModal8();
+  }
+}
+
+// Next button in seventh guide modal shows the eighth guide modal
+if (guideNext7Btn) {
+  guideNext7Btn.addEventListener('click', closeGuideModal7);
+}
+
+// ---- Guide modal 8 logic (Play Button spotlight) ----
+function showGuideModal8() {
+  if (guideModal8 && spotlightBox8) {
+    // Position spotlight on the Play button
+    const playBtn = document.getElementById('heroPlayBtn');
+    if (playBtn) {
+      const rect = playBtn.getBoundingClientRect();
+      // Add some padding around the play button for better visual effect
+      const padding = 20;
+      spotlightBox8.style.left = `${rect.left - padding}px`;
+      spotlightBox8.style.top = `${rect.top - padding}px`;
+      spotlightBox8.style.width = `${rect.width + padding * 2}px`;
+      spotlightBox8.style.height = `${rect.height + padding * 2}px`;
+    }
+    guideModal8.classList.remove('hidden');
+  }
+}
+
+async function closeGuideModal8AndStartCamera() {
+  if (guideModal8) {
+    guideModal8.classList.add('hidden');
+    // Store that user has completed all guides
+    localStorage.setItem('pose_game_guided', 'true');
+    
+    // Auto-start camera and detection
+    try {
+      // Ensure we start from a clean state
+      training = false;
+      await start();
+      // Enable training mode
+      training = true;
+      if (trainBtn) trainBtn.textContent = 'Pause';
+      speak('Camera started! Let\'s begin!');
+      console.log('Camera and detection started successfully');
+    } catch (err) {
+      console.error('Failed to start camera:', err);
+      speak('Failed to start camera. Please check permissions.');
+    }
+  }
+}
+
+// Try it button in eighth guide modal starts camera
+if (guideTryBtn) {
+  guideTryBtn.addEventListener('click', closeGuideModal8AndStartCamera);
+}
+
 // ---- UI helpers for hero buttons ----
 function updateHeroButtonsForPractice() {
   // Play button shows "Play" text and keeps orange color
@@ -951,6 +1274,10 @@ function updateHeroButtonsForPractice() {
   }
   // Hide score badge in practice
   if (gameScoreEl) gameScoreEl.style.display = 'none';
+  // Reset tip to default
+  if (heroTipEl) heroTipEl.textContent = 'Tip:';
+  // Reset move label
+  if (moveLabelEl) moveLabelEl.textContent = 'Please choose movement card';
   // Enable card clicking in practice mode
   document.querySelectorAll('.cardMove').forEach(card => card.classList.remove('disabled'));
 }
@@ -997,22 +1324,4 @@ document.addEventListener('keydown', async (e) => {
   }
 });
 
-// Auto-start camera if user agreed on intro page
-(async function autoStartCamera() {
-  const shouldAutoStart = localStorage.getItem('autoStartCamera');
-  if (shouldAutoStart === 'true') {
-    console.log('Auto-starting camera...');
-    // Remove flag so it doesn't auto-start on every page load
-    localStorage.removeItem('autoStartCamera');
-    // Wait a bit for DOM to be fully ready
-    setTimeout(async () => {
-      try {
-        await start();
-        training = true;
-        trainBtn.textContent = 'Pause';
-      } catch (err) {
-        console.error('Failed to auto-start camera:', err);
-      }
-    }, 500);
-  }
-})();
+// Camera will be started when user clicks "Try it!" button in guide modal 8

@@ -20,7 +20,7 @@
     .list li { position:relative; padding-left:20px; margin:8px 0; color: var(--text); font-weight:500; line-height:1.5; }
     .list li::before { content:""; position:absolute; left:0; top:10px; width:8px; height:8px; border-radius:999px; background: linear-gradient(45deg, #f97316, #fb923c); box-shadow:0 0 0 2px rgba(249,115,22,.2); }
     .tag { display:inline-block; padding:6px 12px; background: linear-gradient(to right, var(--primary), var(--accent)); color:#fff; border:none; border-radius:999px; font-weight:700; font-size:13px; box-shadow: 0 2px 4px rgba(249,115,22,.3); }
-    .actions { margin-top: 32px; display:flex; gap:20px; align-items:center; justify-content:center; }
+    .actions { margin-top: 32px; margin-bottom: 40px; display:flex; gap:20px; align-items:center; justify-content:center; }
     .actions span { color: var(--muted); font-weight:800; font-size: clamp(16px, 2.0vw, 22px); }
     #introStartBtn { font-size: clamp(16px, 2.0vw, 20px); padding:14px 32px; border-radius:26px; box-shadow: 0 6px 12px rgba(249,115,22,.3); }
     button { background: linear-gradient(to right, var(--primary), var(--accent)); color:#fff; border:none; padding:12px 24px; border-radius:26px; cursor:pointer; font-weight:700; font-size:16px; transition: all 0.3s ease; box-shadow: 0 6px 12px rgba(249,115,22,.3); }
@@ -51,54 +51,66 @@
             <li>Recommended to perform in well-lit environment with clean background, ensuring upper body is clearly visible.</li>
           </ul>
         </section>
-
-        <section class="card">
-          <h3>🎮 Modes</h3>
-          <ul class="list">
-            <li><span class="tag">Practice (Default)</span>: Select cards or use gestures to choose movements you want to practice.</li>
-            <li><span class="tag">Play</span>: System plays all movements sequentially (each once, default 1 second hold), then gives a comprehensive score.</li>
-          </ul>
-        </section>
-
-        <section class="card">
-          <h3>✋ Gestures & Controls</h3>
-          <ul class="list">
-            <li>Hands on shoulders for 1 second → Switch to <strong>next</strong> movement.</li>
-          </ul>
-        </section>
-
-        <section class="card">
-          <h3>🏆 Scoring Rules (Play)</h3>
-          <ul class="list">
-            <li>Total Score = 70% Movement Quality (average fit throughout) + 30% Speed Factor (faster completion = higher score).</li>
-          </ul>
-        </section>
-
-        <section class="card">
-          <h3>💡 Tips</h3>
-          <ul class="list">
-            <li>Keep the camera facing you, try to have head, shoulders and upper limbs in the frame.</li>
-            <li>If fit percentage fluctuates significantly, slow down movements and reduce environmental obstructions.</li>
-            <li>If you can't see the latest interface or features, refresh the page (Cmd/Ctrl+Shift+R).</li>
-          </ul>
-        </section>
       </div>
+
       <div class="actions">
         <span style="color:#9ca3af;">Ready?</span>
         <button id="introStartBtn">Start</button>
       </div>
-    </div>
-  </div>
 
-  <!-- Camera consent modal -->
-  <div id="cameraModal" class="modal">
-    <div class="backdrop"></div>
-    <div class="dialog">
-      <h3>Use Camera</h3>
-      <p>For the best experience, please allow camera access for real-time pose recognition. You can revoke this permission anytime in your browser settings.</p>
-      <div class="actions">
-        <button id="rejectCameraBtn" class="btn-muted">Reject</button>
-        <button id="agreeCameraBtn">Agree</button>
+      <div class="blocks">
+        <section class="card">
+          <h3>🎮 How to Practice?</h3>
+          <p style="margin: 8px 0 12px 0; color: var(--muted); font-weight: 600; line-height: 1.6;">
+            The game interface is divided into <strong>three main areas</strong> to help you practice effectively:
+          </p>
+          <div style="text-align: center; margin: 20px 0;">
+            <img src="./game-interface-demo.png" alt="Game Interface" style="max-width: 100%; width: 700px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border: 2px solid rgba(249,115,22,0.2);">
+          </div>
+          <ul class="list">
+            <li><strong>Movement Cards (Left)</strong>: Browse and select from movement cards. Click any card to start practicing that movement.</li>
+            <li><strong>Movement Demonstration (Top Left)</strong>: Watch the animated stick figure perform the selected movement as your reference guide.</li>
+            <li><strong>Detection Area (Right)</strong>: Your live camera feed with real-time skeleton tracking. A <strong>"Fit"</strong> indicator shows how well you match the target pose (0-100%).</li>
+          </ul>
+          <p style="margin: 16px 0 8px 0; color: var(--primary); font-weight: 700; font-size: 15px;">
+            ✨ Practice Flow:
+          </p>
+          <ul class="list">
+            <li><strong>Step 1</strong>: Select a movement card from the left panel.
+              <div style="text-align: center; margin: 12px 0;">
+                <img src="./movement%20card.png" alt="Movement Card" style="max-width: 100%; width: 280px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); border: 2px solid rgba(249,115,22,0.15);">
+              </div>
+            </li>
+            <li><strong>Step 2</strong>: Follow the stick figure demonstration at the top.
+              <div style="text-align: center; margin: 12px 0;">
+                <img src="./demonstration.png" alt="Demonstration" style="max-width: 100%; width: 280px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); border: 2px solid rgba(249,115,22,0.15);">
+              </div>
+            </li>
+            <li><strong>Step 3</strong>: Perform the movement in front of the camera until <strong>Fit reaches 90%+</strong> and hold for <strong>1 second</strong>.
+              <div style="text-align: center; margin: 12px 0;">
+                <img src="./Fit.png" alt="Fit Indicator" style="max-width: 100%; width: 180px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); border: 2px solid rgba(249,115,22,0.15);">
+              </div>
+            </li>
+            <li><strong>Step 4</strong>: Upon success, you'll see a celebration message! Switch to the next card to continue.
+              <div style="text-align: center; margin: 12px 0;">
+                <img src="./celebration%20message.png" alt="Celebration Message" style="max-width: 100%; width: 400px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); border: 2px solid rgba(249,115,22,0.15);">
+              </div>
+            </li>
+          </ul>
+          <p style="margin: 16px 0 8px 0; color: var(--muted); font-weight: 600; line-height: 1.6;">
+            💡 <strong>Pro Tip</strong>: You can also use <strong>hands-free gesture control</strong> — place your hands on your shoulders for 1 second to switch to the next movement card!
+          </p>
+          <div style="text-align: center; margin: 12px 0;">
+            <img src="./hands-free%20gesture%20control.png" alt="Hands-free Gesture Control" style="max-width: 100%; width: 500px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); border: 2px solid rgba(249,115,22,0.15);">
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>🎯 Play mode</h3>
+          <p style="margin: 8px 0 0 0; color: var(--muted); font-weight: 600; line-height: 1.6;">
+            Once you've mastered all movements, click the <strong style="color: var(--primary);">"Play"</strong> button to enter competitive mode. Complete all movements sequentially from first to last to receive an overall score based on your accuracy and speed.
+          </p>
+        </section>
       </div>
     </div>
   </div>
