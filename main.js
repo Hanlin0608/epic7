@@ -996,3 +996,23 @@ document.addEventListener('keydown', async (e) => {
     }
   }
 });
+
+// Auto-start camera if user agreed on intro page
+(async function autoStartCamera() {
+  const shouldAutoStart = localStorage.getItem('autoStartCamera');
+  if (shouldAutoStart === 'true') {
+    console.log('Auto-starting camera...');
+    // Remove flag so it doesn't auto-start on every page load
+    localStorage.removeItem('autoStartCamera');
+    // Wait a bit for DOM to be fully ready
+    setTimeout(async () => {
+      try {
+        await start();
+        training = true;
+        trainBtn.textContent = 'Pause';
+      } catch (err) {
+        console.error('Failed to auto-start camera:', err);
+      }
+    }, 500);
+  }
+})();

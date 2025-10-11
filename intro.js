@@ -20,6 +20,8 @@ if (agreeCameraBtn) {
   agreeCameraBtn.addEventListener("click", () => {
     console.log("Agree button clicked! Navigating to game...");
     closeCameraModal();
+    // Set flag to auto-start camera on game page
+    localStorage.setItem('autoStartCamera', 'true');
     // Navigate to game page; camera will be requested there
     window.location.href = "./game.html";
   });
