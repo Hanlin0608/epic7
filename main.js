@@ -333,26 +333,14 @@ function loop(t = performance.now()) {
       }
     }
 
-    // Gesture navigation: Hands down (hold 1s) -> next, Hands on shoulders (hold 1s) -> previous
+    // Gesture navigation: Hands on shoulders (hold 3s) -> next movement
     try {
       if (practiceMode) {
         const lS = lm[11], rS = lm[12];
         const lW = lm[15], rW = lm[16];
-        const lH = lm[23], rH = lm[24]; // left hip, right hip
-        const shoulderY = Math.min(lS?.y ?? 1, rS?.y ?? 1);
-        const hipY = Math.max(lH?.y ?? 0, rH?.y ?? 0);
         const now = performance.now(); 
         if (!loop.gestureHoldStart) loop.gestureHoldStart = 0;
         if (!loop.lastGestureType) loop.lastGestureType = null;
-
-        // Detect hands naturally down: both wrists below hips, arms relaxed
-        function isHandsDown() {
-          if (!lW || !rW) return false;
-          const lBelowHip = lW.y > hipY - 0.05; // left wrist at or below hip
-          const rBelowHip = rW.y > hipY - 0.05; // right wrist at or below hip
-          const handsApart = Math.abs(lW.x - rW.x) > 0.15; // hands separated (not together)
-          return lBelowHip && rBelowHip && handsApart;
-        }
         
         // Detect hands on shoulders: each wrist near its respective shoulder
         function isHandsOnShoulders() {
@@ -362,9 +350,8 @@ function loop(t = performance.now()) {
           return lDist < 0.15 && rDist < 0.15;
         }
 
-        const handsDown = isHandsDown();
         const handsOnShoulders = isHandsOnShoulders();
-        const currentGesture = handsDown ? 'down' : (handsOnShoulders ? 'shoulders' : null);
+        const currentGesture = handsOnShoulders ? 'shoulders' : null;
 
         // Track gesture hold duration and cooldown between switches
         if (!loop.lastGestureSwitchTime) loop.lastGestureSwitchTime = 0;
@@ -373,7 +360,7 @@ function loop(t = performance.now()) {
         if (currentGesture && currentGesture === loop.lastGestureType) {
           const holdDuration = now - loop.gestureHoldStart;
           if (holdDuration >= 3000 && timeSinceLastSwitch >= 3000) { // 3 second hold + 3 second cooldown
-            if (currentGesture === 'down') {
+            if (currentGesture === 'shoulders') {
               const idx = Math.max(0, exerciseOrder.indexOf(currentMode));
               const nextIdx = (idx + 1 + exerciseOrder.length) % exerciseOrder.length;
               const nextMode = exerciseOrder[nextIdx];
@@ -381,15 +368,6 @@ function loop(t = performance.now()) {
               // Speak direction and tip for the new exercise
               const tip = tipsByMode[nextMode];
               speak(tip ? `Next movement! Tip: ${tip}` : 'Next movement!');
-              loop.lastGestureSwitchTime = now;
-            } else if (currentGesture === 'shoulders') {
-              const idx = Math.max(0, exerciseOrder.indexOf(currentMode));
-              const nextIdx = (idx - 1 + exerciseOrder.length) % exerciseOrder.length;
-              const nextMode = exerciseOrder[nextIdx];
-              navigateExercise(-1);
-              // Speak direction and tip for the new exercise
-              const tip = tipsByMode[nextMode];
-              speak(tip ? `Previous movement! Tip: ${tip}` : 'Previous movement!');
               loop.lastGestureSwitchTime = now;
             }
             loop.gestureHoldStart = now + 3000; // prevent rapid trigger
