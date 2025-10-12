@@ -7,6 +7,7 @@ const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/w
 // Welcome modal
 const welcomeModal = document.getElementById("welcomeModal");
 const welcomeGoBtn = document.getElementById("welcomeGoBtn");
+const welcomeSkipBtn = document.getElementById("welcomeSkipBtn");
 // Guide modal 1 - Cards
 const guideModal = document.getElementById("guideModal");
 const guideNextBtn = document.getElementById("guideNextBtn");
@@ -1007,6 +1008,34 @@ if (!hasBeenWelcomed) {
 // Go button closes the welcome modal and shows guide
 if (welcomeGoBtn) {
   welcomeGoBtn.addEventListener('click', closeWelcomeModal);
+}
+
+// Skip Guide button - skip all guides and start camera directly
+async function skipAllGuides() {
+  console.log('Skipping all guides, starting camera directly...');
+  // Close welcome modal
+  if (welcomeModal) {
+    welcomeModal.classList.add('hidden');
+  }
+  // Mark all guides as completed
+  localStorage.setItem('welcomed', 'true');
+  localStorage.setItem('guideCompleted', 'true');
+  
+  // Start camera and detection immediately
+  try {
+    training = false; // Ensure training mode is off initially
+    await start(); // Start camera and pose detection
+    training = true; // Enable training mode
+    if (trainBtn) trainBtn.textContent = 'Pause';
+    console.log('Skip successful: camera and detection running');
+  } catch (err) {
+    console.error('Failed to start camera after skip:', err);
+    alert('Failed to start camera. Please check permissions and try again.');
+  }
+}
+
+if (welcomeSkipBtn) {
+  welcomeSkipBtn.addEventListener('click', skipAllGuides);
 }
 
 // ---- Guide modal logic (Cards spotlight) ----
