@@ -158,12 +158,12 @@ let flowMode = "manual"; // manual | auto
 const exerciseOrder = [
   "overhead_reach",
   // "side_bend", // hidden
-  "hamstring_hinge",
   "t_pose",
   // removed lunge and quad_stretch from cards
   "y_pose",
   "high_knee_hold", // left leg
   "high_knee_hold_right", // right leg
+  "hamstring_hinge", // moved to last (most difficult)
   // "arm_circles", // hidden
 ];
 let autoIndex = 0;
