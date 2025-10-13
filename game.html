@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pose Recognition - Web Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: linear-gradient(135deg, #fef3c7 0%, #ffdaa3 100%);
@@ -20,9 +21,36 @@
       --success: #16a34a;
     }
 
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 0; padding: 40px; padding-top: 140px; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; box-sizing: border-box; }
-    .wrap { display: flex; height: calc(100vh - 180px); gap: 24px; box-sizing: border-box; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 0; padding: 0; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+    
+    /* Header */
+    .navbar { position: relative; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.25rem 1.75rem; background: #fff; border-bottom: 2px solid rgba(226, 160, 37, 0.15); box-shadow: 0 2px 8px rgba(0,0,0,0.05); font-family: 'Quicksand', sans-serif; min-height: 80px; }
+    .navbar-left { display: flex; align-items: center; }
+    .brand { display: inline-flex; align-items: center; gap: .75rem; text-decoration: none; }
+    .brand-logo { width: 36px; height: 36px; object-fit: contain; }
+    .brand-text { font-weight: 900; font-size: 3rem; color: #222; letter-spacing: -0.5px; }
+    .accent { color: #E87F2F; }
+    .navbar-center { padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+    .nav-link { text-decoration: none; color: #333; font-weight: 1000; font-size: 1.1rem; padding: 1rem 3rem; border-radius: 12px; transition: all 0.3s ease; letter-spacing: 0.2px; }
+    .nav-link:hover { color: #E2A025; background: rgba(226, 160, 37, 0.1); transform: translateY(-2px); }
+    .nav-link.active { color: #fff; background: linear-gradient(135deg, #E87F2F, #E2A025); box-shadow: 0 4px 12px rgba(226, 160, 37, 0.3); }
+    
+    /* Main Content */
+    main { flex: 1; overflow: hidden; padding: 16px; padding-top: 24px; }
+    .wrap { display: flex; height: 100%; gap: 16px; box-sizing: border-box; }
     .navbarSpace { position: fixed; top: 0; left: 0; right: 0; height: 100px; background: transparent; z-index: 100; pointer-events: none; }
+    
+    /* Footer */
+    .footer { position: relative; background: linear-gradient(135deg, #E87F2F 0%, #E2A025 100%); color: white; }
+    .footer-content { padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto; }
+    .footer-info { display: flex; justify-content: space-around; gap: 3rem; flex-wrap: wrap; }
+    .footer-section { display: flex; flex-direction: column; gap: 0.5rem; min-width: 200px; }
+    .footer-title { color: #fff; font-size: 1.1rem; margin-bottom: 0.5rem; font-weight: 600; }
+    .footer-text { color: rgba(255, 255, 255, 0.9); font-size: 0.9rem; line-height: 1.5; margin: 0.25rem 0; }
+    .footer-link { color: rgba(255, 255, 255, 0.9); text-decoration: none; font-size: 0.9rem; transition: all 0.3s; display: inline-block; }
+    .footer-link:hover { color: #fff; transform: translateX(5px); }
+    .footer-bottom { text-align: center; padding: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.9); font-size: 0.9rem; background: rgba(0, 0, 0, 0.1); }
 
     .toolbar { display:flex; gap:12px; align-items:center; margin-bottom:12px; flex-wrap: wrap; }
     button { background: linear-gradient(to right, var(--primary), var(--accent)); color:#fff; border:none; padding:12px 24px; border-radius:26px; cursor:pointer; font-weight:700; font-size:16px; transition: all 0.3s ease; box-shadow: 0 6px 12px rgba(249, 115, 22, 0.3); }
@@ -60,11 +88,11 @@
     .settings .spacer { flex:1; }
     .toast { display:none; margin-left: 8px; color:var(--success); font-weight:700; }
     /* New hero layout */
-    .leftPanel { flex: 0 0 30%; display: flex; flex-direction: column; gap: 20px; min-width: 300px; max-width: 400px; }
+    .leftPanel { flex: 0 0 30%; display: flex; flex-direction: column; gap: 12px; min-width: 300px; max-width: 400px; }
     .rightPanel { flex: 1; display: flex; flex-direction: column; }
-    .hero { background: var(--surface); backdrop-filter: blur(10px); color: var(--text); border-radius:28px; padding:24px; border:1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,.12), 0 10px 20px rgba(0,0,0,.05); display: flex; flex-direction: column; height: 100%; }
-    .heroTop { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-    .heroTopRight { display:flex; align-items:center; gap:12px; }
+    .hero { background: var(--surface); backdrop-filter: blur(10px); color: var(--text); border-radius:20px; padding:16px; border:1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,.12), 0 10px 20px rgba(0,0,0,.05); display: flex; flex-direction: column; height: 100%; }
+    .heroTop { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .heroTopRight { display:flex; align-items:center; gap:10px; }
     .iconBtn { position:relative; display:inline-flex; align-items:center; justify-content:center; width:80px; height:80px; border-radius:50%; background: linear-gradient(to right, var(--primary), var(--accent)); color:#fff; border:none; box-shadow: 0 6px 12px rgba(249,115,22,.35); cursor:pointer; transition: all 0.2s ease; }
     .iconBtn:hover { background: linear-gradient(to right, var(--primary-600), var(--primary)); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(249,115,22,.4); }
     .iconBtn.muted { background: linear-gradient(145deg, #9ca3af, #6b7280); color:#fff; }
@@ -74,14 +102,14 @@
     .fitBadge { background: rgba(2,6,23,0.85); color:#f0f9ff; padding:14px 24px; border-radius:999px; font-weight:800; font-size: clamp(18px, 2.5vw, 28px); box-shadow: 0 6px 12px rgba(0,0,0,.3); border: 2px solid rgba(148,163,184,0.5); }
     .levelBadge { background: linear-gradient(to right, #fbbf24, #f59e0b); color:#111827; padding:12px 20px; border-radius:26px; font-weight:700; font-size: clamp(14px, 1.8vw, 16px); box-shadow: 0 4px 8px rgba(251,191,36,.3); cursor:pointer; transition: all 0.2s ease; }
     .levelBadge:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(251,191,36,.4); }
-    .heroBody { flex: 1; display:flex; justify-content:center; align-items:center; padding:14px 0; min-height: 0; }
+    .heroBody { flex: 1; display:flex; justify-content:center; align-items:center; padding:8px 0; min-height: 0; }
     .heroCircle { width:100%; height:100%; border-radius:20px; background: linear-gradient(145deg, #fafafa, #f5f5f5); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; border:1px solid var(--border); box-shadow: inset 0 2px 4px rgba(0,0,0,.05); }
     .heroCircle canvas#heroGuide { position:absolute; top:50%; left:25%; width:50%; height:70%; transform: translate(-50%, -50%); pointer-events:none; }
-    .heroDots { display:flex; gap:10px; justify-content:center; margin-top:10px; }
+    .heroDots { display:flex; gap:10px; justify-content:center; margin-top:6px; }
     .heroDot { width:10px; height:10px; border-radius:999px; background: var(--primary); opacity:.8; }
-    .heroActions { display:flex; gap:12px; margin-top:20px; flex-shrink: 0; }
-    .demoCard { background: var(--surface); backdrop-filter: blur(10px); border-radius:20px; padding:20px; border:1px solid var(--border); box-shadow: 0 8px 20px rgba(0,0,0,.12); flex: 1; display: flex; flex-direction: column; min-height: 0; }
-    .demoCard h3 { margin:0 0 16px 0; font-size:18px; color: var(--text); font-weight:800; flex-shrink: 0; }
+    .heroActions { display:flex; gap:12px; margin-top:12px; flex-shrink: 0; }
+    .demoCard { background: var(--surface); backdrop-filter: blur(10px); border-radius:16px; padding:12px; border:1px solid var(--border); box-shadow: 0 8px 20px rgba(0,0,0,.12); flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .demoCard h3 { margin:0 0 10px 0; font-size:16px; color: var(--text); font-weight:800; flex-shrink: 0; }
     .demoCard .anim { position:relative; flex: 1; border-radius:16px; background: linear-gradient(145deg, #fafafa, #f5f5f5); border:1px solid var(--border); overflow:hidden; min-height: 0; }
     .demoCard canvas { position:absolute; inset:0; width:100%; height:100%; }
     .btnPrimary { flex:1; background: linear-gradient(to right, var(--primary), var(--accent)); color:#fff; border:none; padding:14px 20px; border-radius:26px; font-weight:800; font-size:16px; box-shadow: 0 6px 12px rgba(249,115,22,.3); transition: all 0.3s ease; cursor:pointer; }
@@ -90,7 +118,7 @@
     .btnGhost { flex:1; background: linear-gradient(to right, #e5e7eb, #f3f4f6); color:#111; border:none; padding:14px 20px; border-radius:26px; font-weight:800; font-size:16px; box-shadow: 0 4px 8px rgba(0,0,0,.1); transition: all 0.3s ease; cursor:pointer; }
     .btnGhost:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,.15); }
     .btnGhost:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,.1); }
-    .heroTip { text-align:center; color: var(--text); margin:12px 0 0 0; font-size: clamp(24px, 3vw, 32px); font-weight: 800; flex-shrink: 0; letter-spacing: 0.3px; }
+    .heroTip { text-align:center; color: var(--text); margin:8px 0 0 0; font-size: clamp(14px, 1.8vw, 18px); font-weight: 700; flex-shrink: 0; letter-spacing: 0.2px; }
     /* Welcome modal */
     .welcomeModal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2000; background: rgba(0,0,0,.3); backdrop-filter: blur(8px); }
     .welcomeModal.hidden { display: none; }
@@ -108,6 +136,41 @@
     .welcomeCard .bottomSection .skipBtn { position: absolute; top: 50%; right: 0; transform: translateY(-50%); background: linear-gradient(135deg, #e5e7eb, #d1d5db); color: #374151; border: none; padding: 14px 28px; border-radius: 18px; font-size: 16px; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,.15); cursor: pointer; transition: all 0.3s ease; letter-spacing: 0.5px; }
     .welcomeCard .bottomSection .skipBtn:hover { transform: translateY(-50%) translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.2); background: linear-gradient(135deg, #d1d5db, #9ca3af); }
     .welcomeCard .bottomSection .skipBtn:active { transform: translateY(-50%) translateY(-1px); }
+    
+    /* Play Mode Info Modal */
+    .playInfoModal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 2500; background: rgba(0,0,0,.4); backdrop-filter: blur(8px); }
+    .playInfoModal.show { display: flex; }
+    .playInfoCard { position: relative; width: min(580px, 90vw); background: #ffffff; border: 4px solid #10b981; border-radius: 24px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,.3), 0 0 0 8px rgba(16,185,129,0.1); animation: playInfoSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes playInfoSlideIn { from { opacity: 0; transform: translateY(-30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .playInfoCard h2 { margin: 0 0 24px 0; font-size: clamp(28px, 5vw, 40px); font-weight: 900; color: #10b981; letter-spacing: 0.8px; text-align: center; }
+    .playInfoCard .noteList { margin: 0 0 40px 0; padding: 0; list-style: none; }
+    .playInfoCard .noteList li { margin: 0 0 20px 0; padding-left: 50px; position: relative; font-size: clamp(16px, 2.8vw, 19px); line-height: 1.6; color: #374151; font-weight: 600; }
+    .playInfoCard .noteList li::before { content: attr(data-num); position: absolute; left: 0; top: 0; width: 36px; height: 36px; background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+    .playInfoCard .actionBtn { display: block; width: auto; margin: 0 0 0 auto; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 18px 48px; border-radius: 20px; font-size: clamp(18px, 3vw, 22px); font-weight: 900; box-shadow: 0 6px 20px rgba(16,185,129,.4); cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1.5px; }
+    .playInfoCard .actionBtn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(16,185,129,.5); background: linear-gradient(135deg, #059669, #047857); }
+    .playInfoCard .actionBtn:active { transform: translateY(-1px); }
+
+    /* Game Completion Modal */
+    .completionModal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 3000; background: rgba(0,0,0,.3); backdrop-filter: blur(8px); }
+    .completionModal.show { display: flex; }
+    .completionCard { position: relative; width: min(620px, 92vw); background: #ffffff; border: 4px solid #10b981; border-radius: 24px; padding: 48px; box-shadow: 0 20px 60px rgba(0,0,0,.3), 0 0 0 8px rgba(16,185,129,0.1); animation: completionSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes completionSlideIn { from { opacity: 0; transform: translateY(-30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .completionCard h2 { margin: 0 0 16px 0; font-size: clamp(32px, 5.5vw, 48px); font-weight: 900; color: #10b981; letter-spacing: 1px; text-align: center; }
+    .completionCard .subtitle { margin: 0 0 32px 0; font-size: clamp(22px, 4vw, 32px); font-weight: 700; color: #374151; text-align: center; letter-spacing: 0.5px; }
+    .completionCard .scoreSection { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 3px solid #10b981; border-radius: 20px; padding: 32px; margin: 0 0 36px 0; text-align: center; }
+    .completionCard .scoreSection .scoreLabel { margin: 0 0 12px 0; font-size: clamp(18px, 3vw, 22px); color: #6b7280; font-weight: 600; }
+    .completionCard .scoreSection .scoreValue { margin: 0; font-size: clamp(56px, 10vw, 88px); font-weight: 900; color: #10b981; line-height: 1; text-shadow: 2px 2px 4px rgba(16,185,129,0.2); }
+    .completionCard .actionsRow { display: flex; gap: 16px; margin-bottom: 32px; }
+    .completionCard .actionsRow button { flex: 1; padding: 18px 24px; border-radius: 20px; font-size: clamp(16px, 2.8vw, 20px); font-weight: 800; border: none; cursor: pointer; transition: all 0.3s ease; letter-spacing: 0.5px; text-transform: uppercase; }
+    .completionCard .retryBtn { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 6px 20px rgba(16,185,129,.4); }
+    .completionCard .retryBtn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(16,185,129,.5); background: linear-gradient(135deg, #059669, #047857); }
+    .completionCard .retryBtn:active { transform: translateY(-1px); }
+    .completionCard .divider { height: 2px; background: linear-gradient(to right, transparent, #10b981, transparent); margin: 32px 0; opacity: 0.3; }
+    .completionCard .farewell { margin: 0 0 24px 0; font-size: clamp(15px, 2.5vw, 18px); color: #9ca3af; font-weight: 600; font-style: italic; text-align: center; line-height: 1.6; }
+    .completionCard .leaveBtn { display: block; width: 100%; background: linear-gradient(135deg, #e5e7eb, #d1d5db); color: #374151; border: none; padding: 16px 32px; border-radius: 18px; font-size: clamp(15px, 2.5vw, 18px); font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,.15); cursor: pointer; transition: all 0.3s ease; letter-spacing: 0.5px; }
+    .completionCard .leaveBtn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.2); background: linear-gradient(135deg, #d1d5db, #9ca3af); }
+    .completionCard .leaveBtn:active { transform: translateY(-1px); }
+    
     /* Guide modal with spotlight */
     .guideModal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2000; }
     .guideModal.hidden { display: none; }
@@ -156,9 +219,74 @@
     @keyframes pop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.08); opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
     .celebrate .spark { position:absolute; width:8px; height:8px; border-radius:999px; background: linear-gradient(45deg, #f97316, #fbbf24); box-shadow:0 0 12px rgba(251,191,36,.9); animation: fly 900ms ease forwards; }
     @keyframes fly { from { transform: translate(0,0); opacity:1 } to { transform: translate(var(--dx), var(--dy)); opacity:0 } }
+    
+    /* Responsive */
+    @media (max-width: 640px) {
+      .navbar { padding: 1rem 1.25rem; min-height: 70px; }
+      .navbar-center { gap: 1.5rem; }
+      .brand-text { font-size: 1.25rem; }
+      .brand-logo { width: 32px; height: 32px; }
+      .nav-link { font-size: 1rem; padding: 0.4rem 0.8rem; }
+      .footer-info { flex-direction: column; align-items: center; text-align: center; gap: 2rem; }
+    }
   </style>
 </head>
 <body>
+  <!-- Header -->
+  <nav class="navbar" role="navigation" aria-label="Main">
+    <div class="navbar-left">
+      <a href="https://www.melmovenow.me/" class="brand">
+        <img src="./logo.png" alt="MelMoveNow Logo" class="brand-logo" />
+        <span class="brand-text">Mel<span class="accent">MoveNow</span></span>
+      </a>
+    </div>
+
+    <div class="navbar-center">
+      <a href="https://www.melmovenow.me/" class="nav-link">Home</a>
+      <a href="https://www.melmovenow.me/" class="nav-link">Sport Recommendation</a>
+      <a href="https://www.melmovenow.me/" class="nav-link">Time Recording</a>
+      <a href="./game.html" class="nav-link active">Play Game</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+
+  <!-- Play Mode Info Modal -->
+  <div id="playInfoModal" class="playInfoModal">
+    <div class="playInfoCard">
+      <h2>Note!</h2>
+      <ul class="noteList">
+        <li data-num="1">Follow movements's sequence, No skipping!</li>
+        <li data-num="2">No manual switching cards with the mouse or gesture.</li>
+        <li data-num="3">Score = Accuracy + Speed</li>
+      </ul>
+      <button id="actionBtn" class="actionBtn">Action!</button>
+    </div>
+  </div>
+
+  <!-- Game Completion Modal -->
+  <div id="completionModal" class="completionModal">
+    <div class="completionCard">
+      <h2>Congratulation!</h2>
+      <p class="subtitle">I can see a healthier you!</p>
+      
+      <div class="scoreSection">
+        <p class="scoreLabel">Your score is</p>
+        <p class="scoreValue" id="finalScore">--</p>
+      </div>
+      
+      <div class="actionsRow">
+        <button id="retryBtn" class="retryBtn">One more time</button>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <p class="farewell">A wave isn't farewell — see you again</p>
+      <button id="leaveBtn" class="leaveBtn">Leave</button>
+    </div>
+  </div>
+
   <!-- Welcome Modal -->
   <div id="welcomeModal" class="welcomeModal">
     <div class="welcomeCard">
@@ -408,7 +536,9 @@
         
       </div>
     </div>
-    <script type="module" src="./main.js?v=84"></script>
+    <script type="module" src="./main.js?v=92"></script>
   </div>
+  </main>
+
 </body>
 </html> 

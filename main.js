@@ -4,6 +4,15 @@ const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmark
 const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm";
 
 // Elements
+// Play Mode Info Modal
+const playInfoModal = document.getElementById("playInfoModal");
+const actionBtn = document.getElementById("actionBtn");
+
+// Game Completion Modal
+const completionModal = document.getElementById("completionModal");
+const finalScoreEl = document.getElementById("finalScore");
+const retryBtn = document.getElementById("retryBtn");
+const leaveBtn = document.getElementById("leaveBtn");
 // Welcome modal
 const welcomeModal = document.getElementById("welcomeModal");
 const welcomeGoBtn = document.getElementById("welcomeGoBtn");
@@ -140,7 +149,7 @@ const defaultThresholds = {
   chin_tuck: { primary: 55, label: "CVA threshold (°)", compare: ">=" },
   overhead_reach: { primary: 0.12, label: "Wrist above shoulder (norm)", compare: ">=" },
   side_bend: { primary: 12, label: "Side bend (°)", compare: ">=" },
-  hamstring_hinge: { primary: 120, label: "Hip angle (°)", compare: "<=" },
+  hamstring_hinge: { primary: 140, label: "Hip angle (°)", compare: "<=" },
   t_pose: { primary: 0.25, label: "Arm spread (norm)", compare: ">=" },
   // squat_hold removed from cards
   quad_stretch: { primary: 70, label: "Knee angle (°)", compare: "<=" },
@@ -449,6 +458,13 @@ function loop(t = performance.now()) {
                   const finalScore = Math.round(0.85 * boostedQuality + 0.15 * boostedSpeed); // 85% quality, 15% speed
                   verdictEl.textContent = `Final score: ${finalScore}`;
                   if (gameScoreEl) gameScoreEl.textContent = `Score: ${finalScore}`;
+                  // Show completion modal with final score
+                  if (finalScoreEl) finalScoreEl.textContent = finalScore;
+                  if (completionModal) {
+                    setTimeout(() => {
+                      completionModal.classList.add('show');
+                    }, 1500); // Show modal after 1.5s to let user see the celebration
+                  }
                   // Encouraging feedback based on score
                   let scoreMsg = finalScore >= 80 ? `Excellent work! Your final score is ${finalScore}!` :
                                  finalScore >= 60 ? `Great job! You scored ${finalScore}!` :
@@ -625,7 +641,7 @@ function poseFrameParams(mode) {
   if (mode === 't_pose') base.armAngle = 0;
   if (mode === 'y_pose' || mode === 'overhead_reach') base.armAngle = Math.PI/3;
   if (mode === 'side_bend') base.torsoTilt = -Math.PI/12;
-  if (mode === 'hamstring_hinge') base.torsoTilt = -Math.PI/6;
+  if (mode === 'hamstring_hinge') base.torsoTilt = -Math.PI/9;
   if (mode === 'lunge_hold') base.legAngle = Math.PI/12;
   return base;
 }
@@ -908,48 +924,55 @@ if (scoreModeBtn) scoreModeBtn.addEventListener('click', async () => {
   try { if (!stream) await start(); else { training = true; trainBtn.textContent = 'Pause'; } } catch {}
 });
 
+// Function to start Play mode (extracted for reuse)
+async function startPlayMode() {
+  // Start Play mode
+  practiceMode = false; scoreMode = true; flowMode = 'auto';
+  autoIndex = 0; currentMode = exerciseOrder[0]; modeSelect.value = currentMode; 
+  if (moveLabelEl) moveLabelEl.textContent = `Move: ${titleForMode(currentMode)}`;
+  holdTargetSec = 1; completedTarget = 1; resetCounters(); totalScore = 0; totalSamples = 0; setStatus('Score mode');
+  try { if (!stream) await start(); } catch {}
+  training = true; trainBtn.textContent = 'Pause';
+  // hide setting while playing
+  try { if (settingBtn) settingBtn.style.display = 'none'; } catch {}
+  // Update button to show Finish
+  updateHeroButtonsForPlay();
+  // show score badge and reset timing
+  if (gameScoreEl) { gameScoreEl.style.display = ''; gameScoreEl.textContent = 'Score: -'; }
+  playStartMs = performance.now();
+  
+  // Initialize first card highlighting and demo canvas
+  document.querySelectorAll('.cardMove').forEach(el => el.classList.remove('active'));
+  const firstCardEl = getCardElForMode(exerciseOrder[0]);
+  if (firstCardEl) {
+    firstCardEl.classList.add('active');
+    try { firstCardEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch {}
+  }
+  updateDemoCanvas(exerciseOrder[0]);
+  if (heroTipEl) heroTipEl.textContent = `Tip: ${tipsByMode[exerciseOrder[0]]}`;
+  
+  // Show play start message with celebration effect
+  showCelebration('The play begins! Complete each move in order.');
+  speak('The play begins! Complete each move in order.');
+}
+
 // Play/Finish button toggle logic
 if (heroPlayBtn) heroPlayBtn.addEventListener('click', async () => {
   // Check current button text to determine action
   const isPlayMode = heroPlayBtn.textContent.includes('Play');
   
   if (isPlayMode) {
-    // Start Play mode
-    practiceMode = false; scoreMode = true; flowMode = 'auto';
-    autoIndex = 0; currentMode = exerciseOrder[0]; modeSelect.value = currentMode; 
-    if (moveLabelEl) moveLabelEl.textContent = `Move: ${titleForMode(currentMode)}`;
-    holdTargetSec = 1; completedTarget = 1; resetCounters(); totalScore = 0; totalSamples = 0; setStatus('Score mode');
-    try { if (!stream) await start(); } catch {}
-    training = true; trainBtn.textContent = 'Pause';
-    // hide setting while playing
-    try { if (settingBtn) settingBtn.style.display = 'none'; } catch {}
-    // Update button to show Finish
-    updateHeroButtonsForPlay();
-    // show score badge and reset timing
-    if (gameScoreEl) { gameScoreEl.style.display = ''; gameScoreEl.textContent = 'Score: -'; }
-    playStartMs = performance.now();
-    
-    // Initialize first card highlighting and demo canvas
-    document.querySelectorAll('.cardMove').forEach(el => el.classList.remove('active'));
-    const firstCardEl = getCardElForMode(exerciseOrder[0]);
-    if (firstCardEl) {
-      firstCardEl.classList.add('active');
-      try { firstCardEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch {}
+    // Show play info modal instead of starting directly
+    if (playInfoModal) {
+      playInfoModal.classList.add('show');
     }
-    updateDemoCanvas(exerciseOrder[0]);
-    if (heroTipEl) heroTipEl.textContent = `Tip: ${tipsByMode[exerciseOrder[0]]}`;
-    
-    // Show play start message with celebration effect
-    showCelebration('The play begins! Complete each move in order.');
-    speak('The play begins! Complete each move in order.');
   } else {
-    // Finish mode - return to practice
-    training = false; trainBtn.textContent = 'Start Training'; 
-    speak('Session finished'); 
-    practiceMode = true; scoreMode = false; 
-    updateHeroButtonsForPractice();
-    // Show setting button again
-    try { if (settingBtn) settingBtn.style.display = ''; } catch {}
+    // Finish mode - navigate to intro page
+    speak('Session finished');
+    // Wait a bit for the voice to play, then navigate to intro
+    setTimeout(() => {
+      window.location.href = './index.html';
+    }, 500);
   }
 });
 
@@ -1337,6 +1360,44 @@ function updateHeroButtonsForPlay() {
 }
 // Default state on entry: Practice mode UI
 updateHeroButtonsForPractice();
+
+// === Game Completion Modal Handlers ===
+// "One more time" button - restart Play mode
+if (retryBtn) {
+  retryBtn.addEventListener('click', async () => {
+    // Close modal
+    if (completionModal) completionModal.classList.remove('show');
+    // Reset and restart Play mode directly (skip info modal)
+    setTimeout(async () => {
+      await startPlayMode();
+    }, 300);
+  });
+}
+
+// "Leave" button - return to homepage
+if (leaveBtn) {
+  leaveBtn.addEventListener('click', () => {
+    // Close modal
+    if (completionModal) completionModal.classList.remove('show');
+    // Navigate to homepage
+    setTimeout(() => {
+      window.location.href = 'https://www.melmovenow.me/';
+    }, 300);
+  });
+}
+
+// === Play Mode Info Modal Handlers ===
+// "Action!" button - start Play mode
+if (actionBtn) {
+  actionBtn.addEventListener('click', async () => {
+    // Close the info modal
+    if (playInfoModal) playInfoModal.classList.remove('show');
+    // Start Play mode after a short delay
+    setTimeout(async () => {
+      await startPlayMode();
+    }, 300);
+  });
+}
 
 // ---- Keyboard navigation for Practice mode (no mouse required) ----
 function getCardElForMode(mode) { try { return movementCardsEl?.querySelector(`.cardMove[data-mode="${mode}"]`); } catch { return null; } }
