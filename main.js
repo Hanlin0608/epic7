@@ -975,8 +975,17 @@ if (modalSaveBtn) modalSaveBtn.addEventListener('click', () => {
   closeSettings();
 });
 
-// Load voice pref
-try { const saved = localStorage.getItem('pose_demo_voice'); if (saved !== null) voiceEnabled = JSON.parse(saved); } catch {}
+// Load voice pref - default to true (enabled)
+try { 
+  const saved = localStorage.getItem('pose_demo_voice'); 
+  if (saved !== null) {
+    voiceEnabled = JSON.parse(saved); 
+  } else {
+    // First time: set default to true and save it
+    voiceEnabled = true;
+    localStorage.setItem('pose_demo_voice', JSON.stringify(true));
+  }
+} catch {}
 updateVoiceUI();
 initDemoCanvas();
 renderMovementCards();
